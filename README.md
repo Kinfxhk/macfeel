@@ -28,7 +28,7 @@ One tab per area — **Shape / Keyboard / Dock / Finder / Screenshots / Pointer 
 
 - **APPLY** (top) applies a whole preset; **DRY RUN** prints it without writing.
 - Rows that need a restart carry a tag: *restart apps to see this*, *takes effect after logout*, *Dock restarted*.
-- **APPLY** on a row writes only that one key; **還原此項** deletes it, back to the system default.
+- **Each row is a switch**: ON writes that key, OFF deletes it so macOS falls back to its own default. The badge under the switch says why it is off — `DRIFT` (a different value is set) or `UNSET` (macOS never set it).
 - **RESTORE** returns to the oldest snapshot — the state before macfeel ever ran.
 
 The panel is a single HTML file served by `python3` from the repo. No Electron, no build step, no dependencies, and it binds `127.0.0.1` only.
