@@ -5,19 +5,20 @@
 #   macfeel status [profile]      show current vs desired for every tweak
 #   macfeel apply [profile]       snapshot, then write the tweaks (default: linux)
 #   macfeel apply --dry-run       print what would change, write nothing
-#   macfeel restore [snapshot]    import the pre-apply snapshot (default: newest)
-#   macfeel snapshot              take a snapshot without changing anything
-#   macfeel doctor                environment + safety checks
+#   macfeel restore [snapshot]    restore a snapshot (default: the oldest one)
 #   macfeel set <id> [--unset]    write or remove a single tweak
 #   macfeel ui [--port N]         open the local control panel
+#   macfeel snapshot              take a snapshot without changing anything
+#   macfeel doctor                environment + safety checks
 #   macfeel about                 version, licence, coffee
 #
-# Env: MACFEEL_HOME (default ~/.macfeel)
+# Env: MACFEEL_HOME (default ~/.macfeel), MACFEEL_LANG (en | zh_Hant | zh_Hans)
 set -euo pipefail
 
 VERSION="0.1.0"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TWEAKS="$HERE/lib/tweaks.conf"
+I18N="$HERE/lib/i18n"
 HOME_DIR="${MACFEEL_HOME:-$HOME/.macfeel}"
 SNAP_ROOT="$HOME_DIR/snapshots"
 
@@ -25,23 +26,62 @@ die()  { printf 'macfeel: %s\n' "$*" >&2; exit 1; }
 say()  { printf '%s\n' "$*"; }
 note() { printf '  %s\n' "$*"; }
 
-[ "$(uname -s)" = "Darwin" ] || die "this tool only runs on macOS"
+[ "$(uname -s)" = "Darwin" ] || die "macfeel: this tool only runs on macOS"
+
+# ------------------------------------------------------------------- language ---
+detect_lang() {
+  if [ -n "${MACFEEL_LANG:-}" ]; then printf '%s' "$MACFEEL_LANG"; return; fi
+  local loc; loc="$(defaults read -g AppleLocale 2>/dev/null || true)"
+  [ -n "$loc" ] || loc="${LANG:-}"
+  case "$loc" in
+    zh*Hans*|zh_CN*|zh_SG*|zh-Hans*) printf 'zh_Hans' ;;
+    zh*|zh_TW*|zh_HK*|zh-Hant*)      printf 'zh_Hant' ;;
+    *)                               printf 'en' ;;
+  esac
+}
+LANG_CODE="$(detect_lang)"
+case "$LANG_CODE" in en|zh_Hant|zh_Hans) ;; *) LANG_CODE="en" ;; esac
+
+lang_col() {  # key + one column per language in lib/i18n/*.tsv
+  case "$1" in
+    en)      echo 2 ;;
+    zh_Hant) echo 3 ;;
+    zh_Hans) echo 4 ;;
+    *)       echo 2 ;;
+  esac
+}
+
+_t_lookup() {  # file key -> localized text (falls back to English, never to a bare key)
+  local file="$1" key="$2" col; col="$(lang_col "$LANG_CODE")"
+  local line; line="$(awk -F'\t' -v k="$key" '$1==k {print; exit}' "$file")"
+  [ -n "$line" ] || { printf '%s' "$key"; return; }
+  local text; text="$(printf '%s' "$line" | cut -f"$col")"
+  [ -n "$text" ] || text="$(printf '%s' "$line" | cut -f2)"
+  printf '%s' "$text"
+}
+
+t() {  # t <key> [name=value]...  — substitutes {placeholders}
+  local key="$1"; shift || true
+  local text; text="$(_t_lookup "$I18N/ui.tsv" "$key")"
+  local pair name val
+  for pair in "$@"; do
+    name="${pair%%=*}"; val="${pair#*=}"
+    text="${text//\{$name\}/$val}"
+  done
+  printf '%s' "$text"
+}
+
+i18n_text() { _t_lookup "$1" "$2"; }   # file id
 
 # ---------------------------------------------------------------- tweak table ---
-# prints: id|profiles|domain|key|type|value|needs|description
 read_tweaks() {
   [ -f "$TWEAKS" ] || die "missing tweak table: $TWEAKS"
   awk -F'\t' 'NF==8 && $1 !~ /^#/ {print}' "$TWEAKS"
 }
 
-in_profile() {  # $1 profiles field, $2 wanted
-  case ",$1," in *",$2,"*) return 0 ;; esac
-  return 1
-}
+in_profile() { case ",$1," in *",$2,"*) return 0 ;; esac; return 1; }
 
-read_value() {  # domain key
-  defaults read "$1" "$2" 2>/dev/null || true
-}
+read_value() { defaults read "$1" "$2" 2>/dev/null || true; }
 
 normalise() {  # collapse the shapes defaults prints (1 vs true, -1 vs -1.0)
   local v="$1"
@@ -55,7 +95,7 @@ normalise() {  # collapse the shapes defaults prints (1 vs true, -1 vs -1.0)
   fi
 }
 
-expand_tilde() {  # defaults expands ~ itself; compare the expanded form or every path reads as drift
+expand_tilde() {  # defaults expands ~ itself; compare the expanded form or paths read as drift
   case "$1" in \~*) printf '%s' "${1/#\~/$HOME}" ;; *) printf '%s' "$1" ;; esac
 }
 
@@ -72,19 +112,13 @@ write_value() {  # domain key type value
   esac
 }
 
-export_domain() {  # domain -> file
+export_domain() {
   local d="$1" out="$2"
   [[ "$d" == "-g" ]] && d="NSGlobalDomain"
   defaults export "$d" "$out" 2>/dev/null
 }
 
-import_domain() {  # domain file
-  local d="$1" src="$2"
-  [[ "$d" == "-g" ]] && d="NSGlobalDomain"
-  defaults import "$d" "$src"
-}
-
-# ------------------------------------------------------------------ snapshot ---
+# ------------------------------------------------------------------- snapshot ---
 take_snapshot() {
   local stamp dir
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -101,34 +135,34 @@ take_snapshot() {
   say "$dir"
 }
 
-# -------------------------------------------------------------------- commands ---
+# ------------------------------------------------------------------- commands ---
 cmd_list() {
   local profile="${1:-linux}"
-  printf '%-22s %-9s %-34s %s\n' "ID" "TYPE" "VALUE" "DESCRIPTION"
   while IFS=$'\t' read -r id profiles domain key type value needs desc; do
     in_profile "$profiles" "$profile" || continue
-    printf '%-22s %-9s %-34s %s\n' "$id" "$type" "$key=$value" "$desc"
+    printf '%-22s %-7s %s=%s\n' "$id" "$type" "$key" "$value"
+    printf '  %s\n' "$(i18n_text "$I18N/desc.tsv" "$id")"
   done < <(read_tweaks)
 }
 
 cmd_status() {
   local profile="${1:-linux}" drift=0 total=0
-  printf '%-22s %-10s %s\n' "ID" "STATE" "CURRENT -> WANTED"
+  printf '%-22s %-8s %s\n' "ID" "STATE" "CURRENT -> WANTED"
   while IFS=$'\t' read -r id profiles domain key type value needs desc; do
     in_profile "$profiles" "$profile" || continue
     total=$((total + 1))
     local cur want; cur="$(read_value "$domain" "$key")"; want="$(expand_tilde "$value")"
     if [ -z "$cur" ]; then
-      printf '%-22s %-10s %s\n' "$id" "unset" "-> $value"; drift=$((drift + 1)); continue
+      printf '%-22s %-8s %s\n' "$id" "unset" "-> $want"; drift=$((drift + 1)); continue
     fi
     if [ "$(normalise "$cur")" = "$(normalise "$want")" ]; then
-      printf '%-22s %-10s %s\n' "$id" "ok" "$cur"
+      printf '%-22s %-8s %s\n' "$id" "ok" "$cur"
     else
-      printf '%-22s %-10s %s -> %s\n' "$id" "drift" "$cur" "$value"; drift=$((drift + 1))
+      printf '%-22s %-8s %s -> %s\n' "$id" "drift" "$cur" "$want"; drift=$((drift + 1))
     fi
   done < <(read_tweaks)
   say ""
-  say "$((total - drift))/$total already match profile '$profile'"
+  say "$((total - drift))/$total $(t cli.status.matched profile="$profile")"
 }
 
 cmd_apply() {
@@ -136,7 +170,7 @@ cmd_apply() {
   while [ $# -gt 0 ]; do
     case "$1" in
       --dry-run|-n) dry=1 ;;
-      --help|-h) sed -n '2,12p' "$0"; return 0 ;;
+      --help|-h) sed -n '2,16p' "$0"; return 0 ;;
       -*) die "unknown flag $1" ;;
       *) profile="$1" ;;
     esac
@@ -156,28 +190,29 @@ cmd_apply() {
 
   local count; count="$(wc -l < "$pending" | tr -d ' ')"
   if [ "$count" = "0" ]; then
-    say "already matches profile '$profile' — nothing to do, no snapshot taken"
+    say "$(t cli.already profile="$profile")"
     return 0
   fi
 
   if [ $dry -eq 1 ]; then
-    say "dry run — nothing will be written ($count pending)"
-    while IFS=$'\t' read -r id _ _ key _ value _ desc; do
-      printf '  would set  %-22s %s=%s  (%s)\n' "$id" "$key" "$value" "$desc"
+    say "$(t cli.dry count="$count")"
+    while IFS=$'\t' read -r id _ _ key _ value _ _; do
+      printf '  %-9s %-22s %s=%s\n' "$(t cli.would)" "$id" "$key" "$value"
+      printf '  %-9s %s\n' "" "$(i18n_text "$I18N/desc.tsv" "$id")"
     done < "$pending"
     return 0
   fi
 
   local snap; snap="$(take_snapshot)"
-  say "snapshot: $snap"
+  say "$(t cli.snapshot): $snap"
   local changed=0 hints=" "
   while IFS=$'\t' read -r id _ domain key type value needs desc; do
     write_value "$domain" "$key" "$type" "$value"
     local now want2; now="$(read_value "$domain" "$key")"; want2="$(expand_tilde "$value")"
     if [ "$(normalise "$now")" = "$(normalise "$want2")" ]; then
-      printf '  set        %-22s %s=%s\n' "$id" "$key" "$value"
+      printf '  %-9s %-22s %s=%s\n' "$(t cli.set)" "$id" "$key" "$value"
     else
-      printf '  FAILED     %-22s %s=%s (reads %s)\n' "$id" "$key" "$value" "$now" >&2
+      printf '  %-9s %-22s %s=%s (reads %s)\n' "$(t cli.failed)" "$id" "$key" "$value" "$now" >&2
     fi
     changed=$((changed + 1))
     case "$needs" in
@@ -192,19 +227,19 @@ cmd_apply() {
   [ -n "$shotdir" ] && mkdir -p "$shotdir" 2>/dev/null || true
 
   say ""
-  say "changed $changed"
-  case "$hints" in *" dock"*) killall Dock 2>/dev/null || true; note "Dock restarted" ;; esac
-  case "$hints" in *" finder"*) killall Finder 2>/dev/null || true; note "Finder restarted" ;; esac
-  case "$hints" in *" uiserver"*) killall SystemUIServer 2>/dev/null || true; note "menu bar restarted" ;; esac
-  case "$hints" in *" logout"*) note "有啲改動要登出再登入先生效（滑鼠加速）" ;; esac
-  note "還原：macfeel restore"
+  say "$(t cli.changed count="$changed")"
+  case "$hints" in *" dock"*) killall Dock 2>/dev/null || true; note "$(t cli.dock)" ;; esac
+  case "$hints" in *" finder"*) killall Finder 2>/dev/null || true; note "$(t cli.finder)" ;; esac
+  case "$hints" in *" uiserver"*) killall SystemUIServer 2>/dev/null || true; note "$(t cli.uiserver)" ;; esac
+  case "$hints" in *" logout"*) note "$(t cli.logout)" ;; esac
+  note "$(t cli.restore-hint)"
 }
 
 cmd_restore() {
   local dir="${1:-}"
   if [ -z "$dir" ]; then
     dir="$(ls -1d "$SNAP_ROOT"/*/ 2>/dev/null | sort | head -1)"
-    [ -n "$dir" ] || die "no snapshot recorded"
+    [ -n "$dir" ] || die "$(t cli.no-snapshot)"
     dir="${dir%/}"
   fi
   [ -d "$dir" ] || die "no such snapshot: $dir"
@@ -212,7 +247,7 @@ cmd_restore() {
   killall Dock 2>/dev/null || true
   killall Finder 2>/dev/null || true
   killall SystemUIServer 2>/dev/null || true
-  say "restored from $dir"
+  say "$(t cli.restored dir="$dir")"
 }
 
 cmd_set() {  # <id> | <id> --unset
@@ -237,27 +272,27 @@ cmd_set() {  # <id> | <id> --unset
 }
 
 cmd_doctor() {
-  say "macfeel $VERSION"
+  say "macfeel $VERSION · lang $LANG_CODE"
   say "macOS:      $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
   say "SIP:        $(csrutil status 2>/dev/null | sed 's/.*: //')"
   say "snapshots:  $SNAP_ROOT"
-  say "tweaks:     $(read_tweaks | wc -l | tr -d ' ') in $TWEAKS"
+  say "tweaks:     $(read_tweaks | wc -l | tr -d ' ')"
   say ""
-  say "profiles:"
+  say "$(t cli.doctor.profiles):"
   for p in linux minimal chrome; do
-    say "  $p: $(read_tweaks | awk -F'\t' -v p="$p" '$2 ~ ("(^|,)" p "(,|$)")' | wc -l | tr -d ' ') tweaks"
+    say "  $p: $(read_tweaks | awk -F'\t' -v p="$p" '$2 ~ ("(^|,)" p "(,|$)")' | wc -l | tr -d ' ')"
   done
   say ""
-  say "macfeel never asks for Accessibility, never disables SIP, never touches system files."
+  say "$(t cli.doctor.safety)"
 }
 
 cmd_about() {
-  say "macfeel $VERSION — make macOS feel like Linux"
-  say "MIT licence · https://github.com/Kinfxhk/macfeel"
-  say "如果幫到你：https://buymeacoffee.com/kinfxhk"
+  say "macfeel $VERSION — $(t app.tagline)"
+  say "$(t cli.about)"
+  say "$(t cli.coffee)"
 }
 
-# ------------------------------------------------------------------------ main ---
+# ----------------------------------------------------------------------- main ---
 cmd="${1:-}"; shift || true
 case "$cmd" in
   list)     cmd_list "${1:-linux}" ;;
@@ -266,9 +301,9 @@ case "$cmd" in
   restore)  cmd_restore "$@" ;;
   set)      cmd_set "$@" ;;
   snapshot) take_snapshot ;;
+  ui)       exec python3 "$HERE/lib/ui.py" --lang "$LANG_CODE" "$@" ;;
   doctor)   cmd_doctor ;;
-  ui)       exec python3 "$HERE/lib/ui.py" "$@" ;;
   about)    cmd_about ;;
   ""|-h|--help|help) sed -n '2,16p' "$0" ;;
-  *) die "unknown command '$cmd' (try: macfeel help)" ;;
+  *) die "$(t cli.unknown cmd="$cmd")" ;;
 esac

@@ -3,6 +3,9 @@
 
 Binds 127.0.0.1 only. Reads state with `defaults read`, writes through bin/macfeel so the
 GUI and the CLI can never disagree about what a tweak means or how it is typed.
+
+Every user-facing string comes from lib/i18n/*.tsv; the panel can switch language without a
+restart (it re-fetches /api/state?lang=…).
 """
 import argparse
 import json
@@ -12,32 +15,74 @@ import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 BIN = ROOT / "bin" / "macfeel"
 TWEAKS = ROOT / "lib" / "tweaks.conf"
-NOTES = ROOT / "lib" / "notes.conf"
+I18N = ROOT / "lib" / "i18n"
 HTML = ROOT / "lib" / "ui.html"
 
+LANGS = ["en", "zh_Hant", "zh_Hans"]
+LANG_LABEL = {"en": "English", "zh_Hant": "繁體中文", "zh_Hans": "简体中文"}
+COL = {"en": 1, "zh_Hant": 2, "zh_Hans": 3}   # index after the key column
+
 GROUPS = [
-    ("win", "Shape", "窗口形狀與動畫"),
-    ("kbd", "Keyboard", "鍵盤與輸入"),
-    ("dock", "Dock", "Dock 與 Space"),
-    ("spaces", "Dock", "Dock 與 Space"),
-    ("finder", "Finder", "檔案管理"),
-    ("shot", "Screenshots", "截圖"),
-    ("ptr", "Pointer", "滑鼠與觸控板"),
-    ("menubar", "Chrome", "選單列與全螢幕"),
-    ("chrome", "Chrome", "選單列與全螢幕"),
+    ("win", "Shape"),
+    ("kbd", "Keyboard"),
+    ("dock", "Dock"),
+    ("spaces", "Dock"),
+    ("finder", "Finder"),
+    ("shot", "Screenshots"),
+    ("ptr", "Pointer"),
+    ("menubar", "Chrome"),
+    ("chrome", "Chrome"),
 ]
+GROUP_LABEL = {
+    "Shape": {"en": "Shape and motion", "zh_Hant": "窗口形狀與動畫", "zh_Hans": "窗口形状与动画"},
+    "Keyboard": {"en": "Keyboard and text", "zh_Hant": "鍵盤與輸入", "zh_Hans": "键盘与输入"},
+    "Dock": {"en": "Dock and Spaces", "zh_Hant": "Dock 與 Space", "zh_Hans": "Dock 与 Space"},
+    "Finder": {"en": "Finder", "zh_Hant": "檔案管理", "zh_Hans": "文件管理"},
+    "Screenshots": {"en": "Screenshots", "zh_Hant": "截圖", "zh_Hans": "截图"},
+    "Pointer": {"en": "Mouse and trackpad", "zh_Hant": "滑鼠與觸控板", "zh_Hans": "鼠标与触控板"},
+    "Chrome": {"en": "Menu bar and full screen", "zh_Hant": "選單列與全螢幕", "zh_Hans": "菜单栏与全屏"},
+}
 
 
-def group_of(tid: str):
+def load_tsv(path: Path):
+    """id/key -> {lang: text}"""
+    out = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 4:
+            continue
+        out[parts[0]] = {"en": parts[1], "zh_Hant": parts[2], "zh_Hans": parts[3]}
+    return out
+
+
+DESC = load_tsv(I18N / "desc.tsv")
+NOTES = load_tsv(I18N / "notes.tsv")
+UI = load_tsv(I18N / "ui.tsv")
+
+
+def t(key: str, lang: str, **kw) -> str:
+    entry = UI.get(key)
+    text = (entry or {}).get(lang) or (entry or {}).get("en") or key
+    for k, v in kw.items():
+        text = text.replace("{" + k + "}", str(v))
+    return text
+
+
+def group_of(tid: str) -> str:
     prefix = tid.split(".")[0]
-    for p, name, subtitle in GROUPS:
+    for p, name in GROUPS:
         if p == prefix:
-            return name, subtitle
-    return "Other", "其他"
+            return name
+    return "Other"
 
 
 def load_tweaks():
@@ -52,17 +97,6 @@ def load_tweaks():
         rows.append(dict(id=tid, profiles=profiles.split(","), domain=domain, key=key,
                          type=typ, value=value, needs=needs, desc=desc))
     return rows
-
-
-def load_notes():
-    notes = {}
-    if NOTES.exists():
-        for line in NOTES.read_text(encoding="utf-8").splitlines():
-            if not line.strip() or line.startswith("#"):
-                continue
-            tid, _, text = line.partition("\t")
-            notes[tid] = text
-    return notes
 
 
 def read_default(domain: str, key: str):
@@ -92,34 +126,64 @@ def expand(v: str) -> str:
     return str(Path(v).expanduser()) if v.startswith("~") else v
 
 
-def state():
+def detect_lang() -> str:
+    try:
+        loc = subprocess.run(["defaults", "read", "-g", "AppleLocale"],
+                             capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception:
+        loc = ""
+    loc = loc or ""
+    if "Hans" in loc or loc.startswith(("zh_CN", "zh_SG")):
+        return "zh_Hans"
+    if loc.startswith("zh"):
+        return "zh_Hant"
+    return "en"
+
+
+def state(lang: str = "en"):
+    lang = lang if lang in LANGS else "en"
     tweaks = load_tweaks()
-    notes = load_notes()
     macos = subprocess.run(["sw_vers", "-productVersion"], capture_output=True, text=True).stdout.strip()
     sip = subprocess.run(["csrutil", "status"], capture_output=True, text=True).stdout.strip()
     items = []
-    for t in tweaks:
-        cur = read_default(t["domain"], t["key"])
-        want = expand(t["value"])
+    for tw in tweaks:
+        cur = read_default(tw["domain"], tw["key"])
+        want = expand(tw["value"])
         if cur is None:
             st = "unset"
         elif norm(cur) == norm(want):
             st = "sync"
         else:
             st = "drift"
-        group, subtitle = group_of(t["id"])
-        items.append({**t, "current": cur, "want": want, "state": st,
-                      "note": notes.get(t["id"], ""), "group": group, "groupSubtitle": subtitle})
-    order = []
-    for _, name, sub in GROUPS:
-        if name not in [g["name"] for g in order]:
-            order.append({"name": name, "subtitle": sub})
-    return {"version": (ROOT / "VERSION").read_text().strip() if (ROOT / "VERSION").exists() else "0.1.0",
-            "macos": macos, "sip": sip, "items": items, "groups": order}
+        g = group_of(tw["id"])
+        items.append({
+            **tw,
+            "current": cur, "want": want, "state": st, "group": g,
+            "groupSubtitle": GROUP_LABEL.get(g, {}).get(lang, g),
+            "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
+            "note": NOTES.get(tw["id"], {}).get(lang) or NOTES.get(tw["id"], {}).get("en") or "",
+        })
+    groups, seen = [], set()
+    for _, name in GROUPS:
+        if name in seen:
+            continue
+        seen.add(name)
+        groups.append({"name": name, "subtitle": GROUP_LABEL.get(name, {}).get(lang, name)})
+    return {
+        "version": (ROOT / "VERSION").read_text().strip() if (ROOT / "VERSION").exists() else "0.1.0",
+        "macos": macos, "sip": sip, "lang": lang, "langs": LANGS,
+        "langLabels": LANG_LABEL,
+        "ui": {k: (v.get(lang) or v.get("en")) for k, v in UI.items()},
+        "items": items, "groups": groups,
+    }
 
 
-def run_cli(args, timeout=120):
-    p = subprocess.run([str(BIN)] + args, capture_output=True, text=True, timeout=timeout)
+def run_cli(args, timeout=120, lang=None):
+    env = None
+    if lang:
+        import os
+        env = {**os.environ, "MACFEEL_LANG": lang}
+    p = subprocess.run([str(BIN)] + args, capture_output=True, text=True, timeout=timeout, env=env)
     return {"code": p.returncode, "out": (p.stdout or "") + (p.stderr or "")}
 
 
@@ -138,35 +202,45 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _lang(self, query=None, body=None):
+        lang = self.server.default_lang
+        if query:
+            lang = parse_qs(query).get("lang", [lang])[0]
+        if body:
+            lang = body.get("lang", lang)
+        return lang if lang in LANGS else "en"
+
     def do_GET(self):
-        if self.path in ("/", "/index.html"):
+        parsed = urlparse(self.path)
+        if parsed.path in ("/", "/index.html"):
             self._send(200, HTML.read_text(encoding="utf-8"), "text/html; charset=utf-8")
-        elif self.path == "/api/state":
-            self._send(200, json.dumps(state(), ensure_ascii=False))
+        elif parsed.path == "/api/state":
+            self._send(200, json.dumps(state(self._lang(parsed.query)), ensure_ascii=False))
         else:
             self._send(404, json.dumps({"error": "not found"}))
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length") or 0)
         body = json.loads(self.rfile.read(length) or b"{}")
+        lang = self._lang(body=body)
         try:
             if self.path == "/api/apply":
                 profile = body.get("profile", "linux")
                 args = ["apply", profile] + (["--dry-run"] if body.get("dry") else [])
-                res = run_cli(args, timeout=180)
+                res = run_cli(args, timeout=180, lang=lang)
             elif self.path == "/api/restore":
-                res = run_cli(["restore"], timeout=180)
+                res = run_cli(["restore"], timeout=180, lang=lang)
             elif self.path == "/api/toggle":
                 tid = body.get("id", "")
-                t = next((x for x in load_tweaks() if x["id"] == tid), None)
-                if not t:
+                tw = next((x for x in load_tweaks() if x["id"] == tid), None)
+                if not tw:
                     self._send(400, json.dumps({"error": "unknown tweak"})); return
-                cur = read_default(t["domain"], t["key"])
-                synced = cur is not None and norm(cur) == norm(expand(t["value"]))
-                res = run_cli(["set", tid, "--unset"] if synced else ["set", tid], timeout=30)
+                cur = read_default(tw["domain"], tw["key"])
+                synced = cur is not None and norm(cur) == norm(expand(tw["value"]))
+                res = run_cli(["set", tid, "--unset"] if synced else ["set", tid], timeout=30, lang=lang)
             else:
                 self._send(404, json.dumps({"error": "not found"})); return
-            self._send(200, json.dumps({**res, "state": state()}, ensure_ascii=False))
+            self._send(200, json.dumps({**res, "state": state(lang)}, ensure_ascii=False))
         except subprocess.TimeoutExpired:
             self._send(504, json.dumps({"error": "command timed out"}))
         except Exception as exc:  # never leave the page hanging
@@ -176,12 +250,14 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     ap = argparse.ArgumentParser(description="macfeel control panel")
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--lang", default=None, help="en | zh_Hant | zh_Hans")
     ap.add_argument("--no-open", action="store_true")
     args = ap.parse_args()
 
     httpd = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    httpd.default_lang = args.lang if args.lang in LANGS else detect_lang()
     url = f"http://127.0.0.1:{args.port}/"
-    print(f"macfeel ui → {url}   (Ctrl+C 停止)")
+    print(f"macfeel ui → {url}   (lang {httpd.default_lang}, Ctrl+C 停止)")
     if not args.no_open:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
