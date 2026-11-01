@@ -8,6 +8,8 @@
 #   macfeel restore [snapshot]    import the pre-apply snapshot (default: newest)
 #   macfeel snapshot              take a snapshot without changing anything
 #   macfeel doctor                environment + safety checks
+#   macfeel set <id> [--unset]    write or remove a single tweak
+#   macfeel ui [--port N]         open the local control panel
 #   macfeel about                 version, licence, coffee
 #
 # Env: MACFEEL_HOME (default ~/.macfeel)
@@ -213,6 +215,27 @@ cmd_restore() {
   say "restored from $dir"
 }
 
+cmd_set() {  # <id> | <id> --unset
+  local id="${1:-}" unset=0
+  [ "${2:-}" = "--unset" ] && unset=1
+  [ -n "$id" ] || die "usage: macfeel set <id> [--unset]"
+  local found=0
+  while IFS=$'\t' read -r tid profiles domain key type value needs desc; do
+    [ "$tid" = "$id" ] || continue
+    found=1
+    if [ $unset -eq 1 ]; then
+      defaults delete "$domain" "$key" 2>/dev/null || true
+      say "unset $id ($domain $key)"
+    else
+      write_value "$domain" "$key" "$type" "$value"
+      local now; now="$(read_value "$domain" "$key")"
+      [ "$(normalise "$now")" = "$(normalise "$(expand_tilde "$value")")" ] \
+        && say "set $id = $value" || die "write did not stick: $id reads $now"
+    fi
+  done < <(read_tweaks)
+  [ $found -eq 1 ] || die "unknown tweak id: $id"
+}
+
 cmd_doctor() {
   say "macfeel $VERSION"
   say "macOS:      $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
@@ -241,8 +264,10 @@ case "$cmd" in
   status)   cmd_status "${1:-linux}" ;;
   apply)    cmd_apply "$@" ;;
   restore)  cmd_restore "$@" ;;
+  set)      cmd_set "$@" ;;
   snapshot) take_snapshot ;;
   doctor)   cmd_doctor ;;
+  ui)       exec python3 "$HERE/lib/ui.py" "$@" ;;
   about)    cmd_about ;;
   ""|-h|--help|help) sed -n '2,16p' "$0" ;;
   *) die "unknown command '$cmd' (try: macfeel help)" ;;
