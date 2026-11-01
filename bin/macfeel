@@ -156,7 +156,8 @@ cmd_status() {
       printf '%-22s %-8s %s\n' "$id" "unset" "-> $want"; drift=$((drift + 1)); continue
     fi
     if [ "$(normalise "$cur")" = "$(normalise "$want")" ]; then
-      printf '%-22s %-8s %s\n' "$id" "ok" "$cur"
+      local tag=""; [ "$needs" != "-" ] && tag="  [$(t "needs.$needs")]"
+      printf '%-22s %-8s %s%s\n' "$id" "ok" "$cur" "$tag"
     else
       printf '%-22s %-8s %s -> %s\n' "$id" "drift" "$cur" "$want"; drift=$((drift + 1))
     fi
@@ -205,7 +206,7 @@ cmd_apply() {
 
   local snap; snap="$(take_snapshot)"
   say "$(t cli.snapshot): $snap"
-  local changed=0 hints=" "
+  local changed=0 hints=" " relaunch=""
   while IFS=$'\t' read -r id _ domain key type value needs desc; do
     write_value "$domain" "$key" "$type" "$value"
     local now want2; now="$(read_value "$domain" "$key")"; want2="$(expand_tilde "$value")"
@@ -220,6 +221,7 @@ cmd_apply() {
       finder)   hints="$hints finder" ;;
       uiserver) hints="$hints uiserver" ;;
       logout)   hints="$hints logout" ;;
+      relaunch) relaunch="$relaunch $id" ;;
     esac
   done < "$pending"
 
@@ -231,7 +233,12 @@ cmd_apply() {
   case "$hints" in *" dock"*) killall Dock 2>/dev/null || true; note "$(t cli.dock)" ;; esac
   case "$hints" in *" finder"*) killall Finder 2>/dev/null || true; note "$(t cli.finder)" ;; esac
   case "$hints" in *" uiserver"*) killall SystemUIServer 2>/dev/null || true; note "$(t cli.uiserver)" ;; esac
-  case "$hints" in *" logout"*) note "$(t cli.logout)" ;; esac
+  if [ -n "$relaunch" ] || case "$hints" in *" logout"*) true ;; *) false ;; esac; then
+    say ""
+    say "$(t cli.needs.title)"
+    [ -n "$relaunch" ] && note "$(t cli.needs.relaunch):$relaunch"
+    case "$hints" in *" logout"*) note "$(t cli.needs.logout)" ;; esac
+  fi
   note "$(t cli.restore-hint)"
 }
 
