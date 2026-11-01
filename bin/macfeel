@@ -1,0 +1,249 @@
+#!/usr/bin/env bash
+# macfeel — make macOS feel like Linux. Reversible, auditable, no SIP changes.
+#
+#   macfeel list [profile]        show the tweaks a profile would change
+#   macfeel status [profile]      show current vs desired for every tweak
+#   macfeel apply [profile]       snapshot, then write the tweaks (default: linux)
+#   macfeel apply --dry-run       print what would change, write nothing
+#   macfeel restore [snapshot]    import the pre-apply snapshot (default: newest)
+#   macfeel snapshot              take a snapshot without changing anything
+#   macfeel doctor                environment + safety checks
+#   macfeel about                 version, licence, coffee
+#
+# Env: MACFEEL_HOME (default ~/.macfeel)
+set -euo pipefail
+
+VERSION="0.1.0"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TWEAKS="$HERE/lib/tweaks.conf"
+HOME_DIR="${MACFEEL_HOME:-$HOME/.macfeel}"
+SNAP_ROOT="$HOME_DIR/snapshots"
+
+die()  { printf 'macfeel: %s\n' "$*" >&2; exit 1; }
+say()  { printf '%s\n' "$*"; }
+note() { printf '  %s\n' "$*"; }
+
+[ "$(uname -s)" = "Darwin" ] || die "this tool only runs on macOS"
+
+# ---------------------------------------------------------------- tweak table ---
+# prints: id|profiles|domain|key|type|value|needs|description
+read_tweaks() {
+  [ -f "$TWEAKS" ] || die "missing tweak table: $TWEAKS"
+  awk -F'\t' 'NF==8 && $1 !~ /^#/ {print}' "$TWEAKS"
+}
+
+in_profile() {  # $1 profiles field, $2 wanted
+  case ",$1," in *",$2,"*) return 0 ;; esac
+  return 1
+}
+
+read_value() {  # domain key
+  defaults read "$1" "$2" 2>/dev/null || true
+}
+
+normalise() {  # collapse the shapes defaults prints (1 vs true, -1 vs -1.0)
+  local v="$1"
+  case "$v" in
+    true|TRUE|1) v=1 ;; false|FALSE|0) v=0 ;;
+  esac
+  if [[ "$v" =~ ^-?[0-9]+\.?[0-9]*$ ]]; then
+    printf '%s' "$v" | awk '{printf "%.6f", $1}'
+  else
+    printf '%s' "$v"
+  fi
+}
+
+expand_tilde() {  # defaults expands ~ itself; compare the expanded form or every path reads as drift
+  case "$1" in \~*) printf '%s' "${1/#\~/$HOME}" ;; *) printf '%s' "$1" ;; esac
+}
+
+write_value() {  # domain key type value
+  local domain="$1" key="$2" type="$3" value="$4"
+  value="$(expand_tilde "$value")"
+  case "$type" in
+    bool)   [[ "$value" == "true" || "$value" == "false" ]] || die "bool tweak needs true/false: $key=$value"
+            defaults write "$domain" "$key" -bool "$value" ;;
+    int)    defaults write "$domain" "$key" -int "$value" ;;
+    float)  defaults write "$domain" "$key" -float "$value" ;;
+    string) defaults write "$domain" "$key" -string "$value" ;;
+    *)      die "unknown type '$type' for $key" ;;
+  esac
+}
+
+export_domain() {  # domain -> file
+  local d="$1" out="$2"
+  [[ "$d" == "-g" ]] && d="NSGlobalDomain"
+  defaults export "$d" "$out" 2>/dev/null
+}
+
+import_domain() {  # domain file
+  local d="$1" src="$2"
+  [[ "$d" == "-g" ]] && d="NSGlobalDomain"
+  defaults import "$d" "$src"
+}
+
+# ------------------------------------------------------------------ snapshot ---
+take_snapshot() {
+  local stamp dir
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  dir="$SNAP_ROOT/$stamp"
+  mkdir -p "$dir"
+  local seen=" "
+  while IFS=$'\t' read -r _ _ domain _ _ _ _ _; do
+    case "$seen" in *" $domain "*) continue ;; esac
+    seen="$seen$domain "
+    local name="${domain#-g}"; name="${name:-NSGlobalDomain}"
+    export_domain "$domain" "$dir/$name.plist" || true
+  done < <(read_tweaks)
+  printf '%s\n' "$dir" > "$HOME_DIR/last-snapshot"
+  say "$dir"
+}
+
+# -------------------------------------------------------------------- commands ---
+cmd_list() {
+  local profile="${1:-linux}"
+  printf '%-22s %-9s %-34s %s\n' "ID" "TYPE" "VALUE" "DESCRIPTION"
+  while IFS=$'\t' read -r id profiles domain key type value needs desc; do
+    in_profile "$profiles" "$profile" || continue
+    printf '%-22s %-9s %-34s %s\n' "$id" "$type" "$key=$value" "$desc"
+  done < <(read_tweaks)
+}
+
+cmd_status() {
+  local profile="${1:-linux}" drift=0 total=0
+  printf '%-22s %-10s %s\n' "ID" "STATE" "CURRENT -> WANTED"
+  while IFS=$'\t' read -r id profiles domain key type value needs desc; do
+    in_profile "$profiles" "$profile" || continue
+    total=$((total + 1))
+    local cur want; cur="$(read_value "$domain" "$key")"; want="$(expand_tilde "$value")"
+    if [ -z "$cur" ]; then
+      printf '%-22s %-10s %s\n' "$id" "unset" "-> $value"; drift=$((drift + 1)); continue
+    fi
+    if [ "$(normalise "$cur")" = "$(normalise "$want")" ]; then
+      printf '%-22s %-10s %s\n' "$id" "ok" "$cur"
+    else
+      printf '%-22s %-10s %s -> %s\n' "$id" "drift" "$cur" "$value"; drift=$((drift + 1))
+    fi
+  done < <(read_tweaks)
+  say ""
+  say "$((total - drift))/$total already match profile '$profile'"
+}
+
+cmd_apply() {
+  local profile="linux" dry=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --dry-run|-n) dry=1 ;;
+      --help|-h) sed -n '2,12p' "$0"; return 0 ;;
+      -*) die "unknown flag $1" ;;
+      *) profile="$1" ;;
+    esac
+    shift
+  done
+
+  # Collect what actually differs first: a snapshot of an already-applied machine is not a
+  # restore point, it is a copy of the change.
+  local pending; pending="$(mktemp "${TMPDIR:-/tmp}/macfeel.XXXXXX")"
+  trap 'rm -f "$pending"' RETURN
+  while IFS=$'\t' read -r id profiles domain key type value needs desc; do
+    in_profile "$profiles" "$profile" || continue
+    local cur want; cur="$(read_value "$domain" "$key")"; want="$(expand_tilde "$value")"
+    if [ -n "$cur" ] && [ "$(normalise "$cur")" = "$(normalise "$want")" ]; then continue; fi
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$id" "$profiles" "$domain" "$key" "$type" "$value" "$needs" "$desc" >> "$pending"
+  done < <(read_tweaks)
+
+  local count; count="$(wc -l < "$pending" | tr -d ' ')"
+  if [ "$count" = "0" ]; then
+    say "already matches profile '$profile' — nothing to do, no snapshot taken"
+    return 0
+  fi
+
+  if [ $dry -eq 1 ]; then
+    say "dry run — nothing will be written ($count pending)"
+    while IFS=$'\t' read -r id _ _ key _ value _ desc; do
+      printf '  would set  %-22s %s=%s  (%s)\n' "$id" "$key" "$value" "$desc"
+    done < "$pending"
+    return 0
+  fi
+
+  local snap; snap="$(take_snapshot)"
+  say "snapshot: $snap"
+  local changed=0 hints=" "
+  while IFS=$'\t' read -r id _ domain key type value needs desc; do
+    write_value "$domain" "$key" "$type" "$value"
+    local now want2; now="$(read_value "$domain" "$key")"; want2="$(expand_tilde "$value")"
+    if [ "$(normalise "$now")" = "$(normalise "$want2")" ]; then
+      printf '  set        %-22s %s=%s\n' "$id" "$key" "$value"
+    else
+      printf '  FAILED     %-22s %s=%s (reads %s)\n' "$id" "$key" "$value" "$now" >&2
+    fi
+    changed=$((changed + 1))
+    case "$needs" in
+      dock)     hints="$hints dock" ;;
+      finder)   hints="$hints finder" ;;
+      uiserver) hints="$hints uiserver" ;;
+      logout)   hints="$hints logout" ;;
+    esac
+  done < "$pending"
+
+  local shotdir; shotdir="$(read_value com.apple.screencapture location || true)"
+  [ -n "$shotdir" ] && mkdir -p "$shotdir" 2>/dev/null || true
+
+  say ""
+  say "changed $changed"
+  case "$hints" in *" dock"*) killall Dock 2>/dev/null || true; note "Dock restarted" ;; esac
+  case "$hints" in *" finder"*) killall Finder 2>/dev/null || true; note "Finder restarted" ;; esac
+  case "$hints" in *" uiserver"*) killall SystemUIServer 2>/dev/null || true; note "menu bar restarted" ;; esac
+  case "$hints" in *" logout"*) note "有啲改動要登出再登入先生效（滑鼠加速）" ;; esac
+  note "還原：macfeel restore"
+}
+
+cmd_restore() {
+  local dir="${1:-}"
+  if [ -z "$dir" ]; then
+    dir="$(ls -1d "$SNAP_ROOT"/*/ 2>/dev/null | sort | head -1)"
+    [ -n "$dir" ] || die "no snapshot recorded"
+    dir="${dir%/}"
+  fi
+  [ -d "$dir" ] || die "no such snapshot: $dir"
+  python3 "$HERE/lib/restore.py" "$dir" "$TWEAKS"
+  killall Dock 2>/dev/null || true
+  killall Finder 2>/dev/null || true
+  killall SystemUIServer 2>/dev/null || true
+  say "restored from $dir"
+}
+
+cmd_doctor() {
+  say "macfeel $VERSION"
+  say "macOS:      $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
+  say "SIP:        $(csrutil status 2>/dev/null | sed 's/.*: //')"
+  say "snapshots:  $SNAP_ROOT"
+  say "tweaks:     $(read_tweaks | wc -l | tr -d ' ') in $TWEAKS"
+  say ""
+  say "profiles:"
+  for p in linux minimal chrome; do
+    say "  $p: $(read_tweaks | awk -F'\t' -v p="$p" '$2 ~ ("(^|,)" p "(,|$)")' | wc -l | tr -d ' ') tweaks"
+  done
+  say ""
+  say "macfeel never asks for Accessibility, never disables SIP, never touches system files."
+}
+
+cmd_about() {
+  say "macfeel $VERSION — make macOS feel like Linux"
+  say "MIT licence · https://github.com/Kinfxhk/macfeel"
+  say "如果幫到你：https://buymeacoffee.com/kinfxhk"
+}
+
+# ------------------------------------------------------------------------ main ---
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  list)     cmd_list "${1:-linux}" ;;
+  status)   cmd_status "${1:-linux}" ;;
+  apply)    cmd_apply "$@" ;;
+  restore)  cmd_restore "$@" ;;
+  snapshot) take_snapshot ;;
+  doctor)   cmd_doctor ;;
+  about)    cmd_about ;;
+  ""|-h|--help|help) sed -n '2,16p' "$0" ;;
+  *) die "unknown command '$cmd' (try: macfeel help)" ;;
+esac

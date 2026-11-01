@@ -1,0 +1,105 @@
+# macfeel
+
+**Make macOS feel like Linux — reversible, auditable, no SIP changes.**
+
+macOS is a good Unix with a UI that fights you: 16 pt window corners, animations between you and every keystroke, a mouse that accelerates, a Dock that never leaves. `macfeel` is a single dependency-free CLI that turns those off — and can put every one of them back.
+
+```bash
+git clone https://github.com/Kinfxhk/macfeel.git && cd macfeel
+./install.sh
+macfeel apply linux --dry-run   # see the 43 changes
+macfeel apply linux             # snapshot first, then write
+macfeel restore                 # back to exactly how it was
+```
+
+**[☕ Buy Me a Coffee](https://buymeacoffee.com/kinfxhk)** · MIT · macOS 13+ (tested on macOS 27.2)
+
+---
+
+## Why another defaults script
+
+The internet already has 50-line `defaults write` gists. They have two problems: you cannot undo them, and you cannot tell what they touched. macfeel is built around three rules:
+
+1. **Nothing is written without a snapshot.** Every run exports the domains it is about to touch to `~/.macfeel/snapshots/<timestamp>/`.
+2. **`restore` is per-key, not per-domain.** Importing an old whole domain would silently roll back preferences other apps wrote since. macfeel restores only the keys it owns — writing the saved value, or deleting the key if it did not exist before.
+3. **`--dry-run` is the default mental model.** Nothing runs blind; every tweak carries a description and a restart hint.
+
+## Profiles
+
+| Profile | What it is for | Tweaks |
+|---|---|---|
+| `linux` (default) | the full "stop wasting my time" set | 43 |
+| `minimal` | just shape and speed: square corners, no animations, fast key repeat | 5 |
+| `chrome` | hides the menu bar and the Dock on top of `linux` | 4 |
+
+```bash
+macfeel list linux      # what it would change
+macfeel status linux    # current vs wanted, per key
+macfeel apply chrome    # menu bar + Dock out of the way
+```
+
+## What it changes (43 keys, all `defaults`-only)
+
+**Shape** — window corner radius (`NSConvolutionOverride1`, `0.1` = square, `4` = Catalina, `16` = Tahoe default), edge-to-edge sidebar, sidebar glass radius, window animations off, resize animation 0.001 s, save panels expanded, compact table rows.
+
+**Keyboard** — `KeyRepeat 1` / `InitialKeyRepeat 10` (fastest sane), press-and-hold popup off so key repeat works in terminals, smart quotes / smart dashes / autocorrect / auto-capitalisation / inline completion all off (typing code stops fighting you), full keyboard access on so Tab reaches every control, double-clicking a title bar maximises instead of minimising.
+
+**Dock** — auto-hide with zero delay, 0.15 s animation, `scale` minimise, no recent apps, no launch bounce, faster Mission Control, Spaces stay in a fixed order instead of re-sorting by recent use.
+
+**Finder** — extensions, path bar, status bar, full path in title, folders first, no extension-change warning, no `.DS_Store` on network or USB volumes.
+
+**Screenshots** — no shadow, PNG, saved to `~/Pictures/Screenshots`, no floating thumbnail.
+
+**Pointer** — natural scrolling off (Linux direction), mouse acceleration off (`com.apple.mouse.scaling -1`, takes effect after logout), tap-to-click on.
+
+**Chrome (opt-in)** — menu bar auto-hide.
+
+Full table with provenance: [`lib/tweaks.conf`](lib/tweaks.conf) and [`docs/SOURCES.md`](docs/SOURCES.md).
+
+## Commands
+
+```
+macfeel list [profile]        show the tweaks a profile would change
+macfeel status [profile]      current vs desired for every tweak
+macfeel apply [profile]       snapshot, then write (default: linux)
+macfeel apply --dry-run       print what would change, write nothing
+macfeel restore [snapshot]    restore the oldest snapshot (or a named one)
+macfeel snapshot              take a snapshot without changing anything
+macfeel doctor                macOS version, SIP status, profile sizes
+macfeel about                 version, licence, coffee
+```
+
+## Safety
+
+- **No Accessibility, no Input Monitoring, no Full Disk Access.** macfeel only writes user-level preferences.
+- **SIP stays on.** Nothing here injects into WindowServer, Dock.app or any system binary.
+- **No kernel extensions, no drivers, no login items.**
+- Every value is a plain `defaults` key, so `defaults read <domain> <key>` always tells you the truth.
+- `restore` picks the **oldest** snapshot by default — the state before macfeel ever ran — not the most recent one.
+
+## What it will not do (on purpose)
+
+| Want | Reality |
+|---|---|
+| Window shadows / borders | WindowServer private API. Needs injection — out of scope. |
+| True 1:1 mouse curve that survives the slider | Needs an event tap (Accessibility). macfeel uses `com.apple.mouse.scaling -1` and says "log out". |
+| Smooth wheel scrolling | Needs an event tap. Not a preference. |
+| i3-style tiling | macOS 15+ tiles natively (`fn`+`ctrl`+arrows). Beyond that, a window manager needs Accessibility. |
+| Moving windows between Spaces from the CLI | Needs a SIP-off scripting addition. |
+
+macfeel is deliberately the *preferences* layer. It is the part that needs no trust.
+
+## Uninstall
+
+```bash
+macfeel restore          # put every key back
+rm -rf ~/dev/macfeel ~/.macfeel
+```
+
+## 中文簡介
+
+macOS 嘅 UI 同 Unix 底子唔夾：圓角、動畫、滑鼠加速、Dock 長駐。`macfeel` 用一個無依賴 CLI 把呢啲全部關掉，而且**每一步都可以還原**：每次 apply 之前自動 snapshot，`restore` 只會還原 macfeel 自己改過嘅 key，唔會拖累其他 app 嘅設定。全程唔需要 Accessibility 權限、唔需要關 SIP、唔會裝任何驅動。
+
+## License
+
+MIT © KinFx · [☕ Buy Me a Coffee](https://buymeacoffee.com/kinfxhk)
