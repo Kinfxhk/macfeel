@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macfeel</title>
+<style>
+  :root {
+    --paper: #f6f3ea; --ink: #17140f; --muted: #6b6355; --rule: #d9d2c2;
+    --accent: #b3402a; --ok: #2f6b3f; --warn: #a2711b; --mono: "SF Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; border-radius: 0 !important; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font: 14px/1.5 -apple-system, "Helvetica Neue", "PingFang HK", sans-serif; }
+  header { border-bottom: 2px solid var(--ink); padding: 18px 28px 0; }
+  .top { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  h1 { margin: 0; font: 700 26px/1 var(--mono); letter-spacing: .18em; }
+  .meta { font: 12px var(--mono); color: var(--muted); }
+  .spacer { flex: 1; }
+  .actions { display: flex; gap: 8px; align-items: center; }
+  select, button { font: 12px var(--mono); padding: 7px 12px; background: transparent;
+                   border: 1px solid var(--ink); color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--ink); color: var(--paper); }
+  button:hover { background: var(--ink); color: var(--paper); }
+  button.primary:hover { background: var(--accent); border-color: var(--accent); }
+  nav { display: flex; gap: 0; margin-top: 16px; overflow-x: auto; }
+  nav button { border: 0; border-bottom: 3px solid transparent; padding: 10px 16px;
+               font: 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+  nav button.on { border-bottom-color: var(--accent); color: var(--accent); }
+  nav button span { color: var(--muted); margin-left: 6px; }
+  main { padding: 22px 28px 80px; max-width: 1180px; }
+  .lede { font: 12px var(--mono); color: var(--muted); margin: 0 0 6px; }
+  .legend { font: 11px var(--mono); color: var(--muted); margin: 0 0 18px; }
+  .legend b { font-weight: 600; }
+  .row { display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 18px;
+         padding: 14px 0; border-top: 1px solid var(--rule); align-items: start; }
+  .row:first-of-type { border-top: 2px solid var(--ink); }
+  .name { font-weight: 600; }
+  .note { color: var(--muted); margin: 3px 0 5px; max-width: 62ch; }
+  .key { font: 11px var(--mono); color: var(--muted); word-break: break-all; }
+  .side { text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+  .side button { border: 0; padding: 2px 0; font: 11px var(--mono); color: var(--muted); text-decoration: underline; }
+  .side button.act { background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
+                     padding: 7px 12px; text-decoration: none; }
+  .side button.act:hover { background: var(--accent); border-color: var(--accent); }
+  .badge { font: 10px var(--mono); letter-spacing: .1em; padding: 3px 7px; border: 1px solid currentColor; }
+  .sync { color: var(--ok); } .drift { color: var(--warn); } .unset { color: var(--muted); }
+  .val { font: 11px var(--mono); color: var(--muted); }
+  #out { white-space: pre-wrap; font: 12px var(--mono); background: #fffdf7;
+         border: 1px solid var(--rule); padding: 12px; margin-top: 22px; display: none; }
+  #out.on { display: block; }
+  footer { border-top: 1px solid var(--rule); margin-top: 30px; padding-top: 12px;
+           font: 11px var(--mono); color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>MACFEEL</h1>
+    <div class="meta" id="meta">…</div>
+    <div class="spacer"></div>
+    <div class="actions">
+      <span class="meta">PRESET</span>
+      <select id="profile">
+        <option value="linux">linux — 43 tweaks</option>
+        <option value="minimal">minimal — 5 tweaks</option>
+        <option value="chrome">chrome — 4 tweaks</option>
+      </select>
+      <button id="dry">DRY RUN</button>
+      <button id="apply" class="primary">APPLY</button>
+      <button id="restore" title="回到未改之前">↩ RESTORE</button>
+    </div>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main>
+  <p class="lede" id="lede"></p>
+  <p class="legend"><b class="ok">IN SYNC</b> 已套用 · <b class="drift">DRIFT</b> 值唔同（可以覆蓋） · <b class="unset">UNSET</b> 系統未設過 · 右邊「還原此項」＝刪除該 key，回到系統預設</p>
+  <div id="rows"></div>
+  <pre id="out"></pre>
+  <footer>
+    macfeel writes user-level preferences only — no Accessibility, no SIP changes.
+    每一項都可以還原：RESTORE 會回到未改之前嘅狀態。
+    · <a href="https://buymeacoffee.com/kinfxhk" target="_blank">☕ Buy Me a Coffee</a>
+  </footer>
+</main>
+<script>
+let STATE = null, active = "Shape";
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"},
+                                      body: JSON.stringify(body)} : {});
+  return r.json();
+}
+
+function render() {
+  const {macos, sip, items, groups} = STATE;
+  document.getElementById("meta").textContent =
+    `macOS ${macos} · ${sip.replace("System Integrity Protection status: ", "SIP ")}`;
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  for (const g of groups) {
+    const n = items.filter(i => i.group === g.name).length;
+    if (!n) continue;
+    const b = document.createElement("button");
+    b.innerHTML = `${g.name}<span>${n}</span>`;
+    if (g.name === active) b.className = "on";
+    b.onclick = () => { active = g.name; render(); };
+    tabs.appendChild(b);
+  }
+  const shown = items.filter(i => i.group === active);
+  const g = groups.find(x => x.name === active) || {};
+  const drift = shown.filter(i => i.state !== "sync").length;
+  document.getElementById("lede").textContent =
+    `${g.subtitle || ""} — ${shown.length} 項，${drift} 項未套用。` +
+    `每項下面寫住佢改邊個 defaults key；右邊 APPLY 只改嗰一項，上面 APPLY 一次過套用成個 preset。`;
+  const rows = document.getElementById("rows");
+  rows.innerHTML = "";
+  for (const t of shown) {
+    const row = document.createElement("div");
+    row.className = "row";
+    const label = {sync: "IN SYNC", drift: "DRIFT", unset: "UNSET"}[t.state];
+    row.innerHTML = `
+      <div>
+        <div class="name">${t.desc}</div>
+        <div class="note">${t.note || ""}</div>
+        <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}</div>
+      </div>
+      <div class="side">
+        <span class="badge ${t.state}">${label}</span>
+        <button class="${t.state === "sync" ? "" : "act"}" data-id="${t.id}">${t.state === "sync" ? "還原此項" : "APPLY"}</button>
+      </div>`;
+    row.querySelector("button").onclick = () => toggle(t.id);
+    rows.appendChild(row);
+  }
+}
+
+async function toggle(id) {
+  show("working…");
+  const r = await api("/api/toggle", {id});
+  STATE = r.state; render(); show(r.out || "");
+}
+
+async function apply(dry) {
+  const profile = document.getElementById("profile").value;
+  show(`running: macfeel apply ${profile}${dry ? " --dry-run" : ""}…`);
+  const r = await api("/api/apply", {profile, dry});
+  if (r.state) { STATE = r.state; render(); }
+  show(r.out || "");
+}
+
+async function restore() {
+  if (!confirm("還原到未改之前嘅狀態？")) return;
+  show("restoring…");
+  const r = await api("/api/restore", {});
+  if (r.state) { STATE = r.state; render(); }
+  show(r.out || "");
+}
+
+function show(text) {
+  const o = document.getElementById("out");
+  o.textContent = text;
+  o.className = text ? "on" : "";
+}
+
+document.getElementById("apply").onclick = () => apply(false);
+document.getElementById("dry").onclick = () => apply(true);
+document.getElementById("restore").onclick = restore;
+
+api("/api/state").then(s => { STATE = s; render(); });
+</script>
+</body>
+</html>

@@ -16,6 +16,22 @@ macfeel restore                 # back to exactly how it was
 
 ---
 
+## GUI
+
+```bash
+macfeel ui          # opens http://127.0.0.1:8765 — local only, no network
+```
+
+<img src="docs/ui.png" alt="macfeel control panel: tabs per area, each row showing what it changes and whether it is applied" width="820">
+
+One tab per area — **Shape / Keyboard / Dock / Finder / Screenshots / Pointer / Chrome** — and every row answers three questions in place: what it does (in Chinese), which `defaults` key it writes, and whether your Mac currently matches.
+
+- **APPLY** (top) applies a whole preset; **DRY RUN** prints it without writing.
+- **APPLY** on a row writes only that one key; **還原此項** deletes it, back to the system default.
+- **RESTORE** returns to the oldest snapshot — the state before macfeel ever ran.
+
+The panel is a single HTML file served by `python3` from the repo. No Electron, no build step, no dependencies, and it binds `127.0.0.1` only.
+
 ## Why another defaults script
 
 The internet already has 50-line `defaults write` gists. They have two problems: you cannot undo them, and you cannot tell what they touched. macfeel is built around three rules:
@@ -54,7 +70,7 @@ macfeel apply chrome    # menu bar + Dock out of the way
 
 **Chrome (opt-in)** — menu bar auto-hide.
 
-Full table with provenance: [`lib/tweaks.conf`](lib/tweaks.conf) and [`docs/SOURCES.md`](docs/SOURCES.md).
+Full table with provenance: [`lib/tweaks.conf`](lib/tweaks.conf), the long explanations in [`lib/notes.conf`](lib/notes.conf), and sources in [`docs/SOURCES.md`](docs/SOURCES.md).
 
 ## Commands
 
@@ -64,6 +80,8 @@ macfeel status [profile]      current vs desired for every tweak
 macfeel apply [profile]       snapshot, then write (default: linux)
 macfeel apply --dry-run       print what would change, write nothing
 macfeel restore [snapshot]    restore the oldest snapshot (or a named one)
+macfeel ui [--port N]         open the local control panel
+macfeel set <id> [--unset]    write or remove a single tweak
 macfeel snapshot              take a snapshot without changing anything
 macfeel doctor                macOS version, SIP status, profile sizes
 macfeel about                 version, licence, coffee
