@@ -162,6 +162,9 @@ def state(lang: str = "en"):
             "groupSubtitle": GROUP_LABEL.get(g, {}).get(lang, g),
             "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
             "note": NOTES.get(tw["id"], {}).get(lang) or NOTES.get(tw["id"], {}).get("en") or "",
+            "needsLabel": ("" if tw["needs"] in ("-", "") else
+                           (UI.get(f"needs.{tw['needs']}", {}).get(lang)
+                            or UI.get(f"needs.{tw['needs']}", {}).get("en") or "")),
         })
     groups, seen = [], set()
     for _, name in GROUPS:

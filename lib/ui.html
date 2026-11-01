@@ -38,6 +38,8 @@
   .name { font-weight: 600; }
   .note { color: var(--muted); margin: 3px 0 5px; max-width: 62ch; }
   .key { font: 11px var(--mono); color: var(--muted); word-break: break-all; }
+  .tag { font: 10px var(--mono); color: var(--accent); border: 1px solid var(--accent);
+         padding: 1px 6px; margin-left: 8px; white-space: nowrap; }
   .side { text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
   .side button { border: 0; padding: 2px 0; font: 11px var(--mono); color: var(--muted); text-decoration: underline; }
   .side button.act { background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
@@ -148,7 +150,7 @@ function render() {
       <div>
         <div class="name">${t.desc}</div>
         <div class="note">${t.note || ""}</div>
-        <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}</div>
+        <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}${t.needsLabel ? `<span class="tag">${t.needsLabel}</span>` : ""}</div>
       </div>
       <div class="side">
         <span class="badge ${t.state}">${label}</span>

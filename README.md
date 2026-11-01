@@ -27,6 +27,7 @@ macfeel ui          # opens http://127.0.0.1:8765 — local only, no network
 One tab per area — **Shape / Keyboard / Dock / Finder / Screenshots / Pointer / Chrome** — and every row answers three questions in place: what it does (in Chinese), which `defaults` key it writes, and whether your Mac currently matches.
 
 - **APPLY** (top) applies a whole preset; **DRY RUN** prints it without writing.
+- Rows that need a restart carry a tag: *restart apps to see this*, *takes effect after logout*, *Dock restarted*.
 - **APPLY** on a row writes only that one key; **還原此項** deletes it, back to the system default.
 - **RESTORE** returns to the oldest snapshot — the state before macfeel ever ran.
 
@@ -101,6 +102,18 @@ macfeel snapshot              take a snapshot without changing anything
 macfeel doctor                macOS version, SIP status, profile sizes
 macfeel about                 version, licence, coffee
 ```
+
+## What needs a restart
+
+macfeel restarts Dock, Finder and the menu bar for you. Two things it cannot do for you, and both
+are labelled in `status` and in the panel:
+
+| Needs | Tweaks |
+|---|---|
+| **Quit and reopen the app** | `win.corner`, `win.sidebar-float`, `win.sidebar-radius`, `win.no-animations`, `win.resize-time`, `win.save-expanded`, `win.save-expanded2`, `win.tableView-compact` |
+| **Log out and back in** | `ptr.linear-mouse` (`com.apple.mouse.scaling` is read at login, and the Tracking speed slider overwrites it) |
+
+Everything else is live the moment `apply` returns.
 
 ## Safety
 
