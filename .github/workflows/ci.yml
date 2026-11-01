@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          bash -n bin/macfeel
+          bash -n install.sh
+          python3 -m py_compile lib/restore.py
+
+      - name: Doctor
+        run: ./bin/macfeel doctor
+
+      - name: Dry run writes nothing
+        run: |
+          ./bin/macfeel apply linux --dry-run
+          if defaults read -g NSConvolutionOverride1 >/dev/null 2>&1; then
+            echo "dry run wrote a value"; exit 1
+          fi
+
+      - name: Apply, verify, restore
+        run: |
+          set -e
+          ./bin/macfeel apply minimal
+          test "$(defaults read -g KeyRepeat)" = "1"
+          test "$(defaults read -g NSConvolutionOverride1 | awk '{printf "%.1f", $1}')" = "0.1"
+          ./bin/macfeel status minimal | tail -1 | grep -q "5/5"
+          ./bin/macfeel restore
+          # the runner had no KeyRepeat before, so restore must remove it
+          if defaults read -g KeyRepeat >/dev/null 2>&1; then
+            echo "restore left KeyRepeat behind"; exit 1
+          fi
+
+      - name: Idempotent second apply
+        run: |
+          ./bin/macfeel apply minimal >/dev/null
+          out="$(./bin/macfeel apply minimal)"
+          echo "$out" | grep -q "already matches"
+          ./bin/macfeel restore
