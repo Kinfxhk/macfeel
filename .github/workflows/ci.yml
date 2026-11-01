@@ -18,6 +18,47 @@ jobs:
           bash -n install.sh
           python3 -m py_compile lib/restore.py
 
+      - name: i18n parity
+        run: |
+          python3 - <<'PY'
+          import re, sys
+          from pathlib import Path
+          root = Path(".")
+          ids = [l.split("\t")[0] for l in (root/"lib/tweaks.conf").read_text(encoding="utf-8").splitlines()
+                 if l.strip() and not l.startswith("#")]
+          bad = []
+          for name in ("desc", "notes"):
+              rows = {}
+              for line in (root/f"lib/i18n/{name}.tsv").read_text(encoding="utf-8").splitlines():
+                  if not line.strip() or line.startswith("#"):
+                      continue
+                  parts = line.split("\t")
+                  if len(parts) != 4 or not all(parts):
+                      bad.append(f"{name}: malformed row {parts[:1]}")
+                      continue
+                  rows[parts[0]] = parts[1:]
+              missing = [i for i in ids if i not in rows]
+              if missing:
+                  bad.append(f"{name}: missing ids {missing}")
+          ui = {}
+          for line in (root/"lib/i18n/ui.tsv").read_text(encoding="utf-8").splitlines():
+              if not line.strip() or line.startswith("#"):
+                  continue
+              parts = line.split("\t")
+              if len(parts) != 4 or not all(parts):
+                  bad.append(f"ui: malformed row {parts[:1]}")
+                  continue
+              ui[parts[0]] = parts[1:]
+          html = (root/"lib/ui.html").read_text(encoding="utf-8")
+          used = set(re.findall(r'ui\("([\w.-]+)"\)', html)) | set(re.findall(r'data-ui="([\w.-]+)"', html))
+          missing_ui = sorted(u for u in used if u not in ui)
+          if missing_ui:
+              bad.append(f"ui.html uses keys with no translation: {missing_ui}")
+          print("i18n: %d tweaks, %d ui keys, %d langs" % (len(ids), len(ui), 3))
+          if bad:
+              print("\n".join(bad)); sys.exit(1)
+          PY
+
       - name: Doctor
         run: ./bin/macfeel doctor
 

@@ -1,0 +1,45 @@
+# id	en	zh_Hant	zh_Hans
+chrome.hide-menubar	The menu bar hides until the pointer reaches the top. Closest to a Linux full-screen feel, but you lose the clock and battery at a glance.	選單列自動隱藏（滑鼠推上去才出）。最似 Linux 全螢幕，但會冇咗常駐時鐘／電量。	菜单栏平时隐藏，鼠标到顶部才出现。最像 Linux 全屏，但看不到时钟和电量。
+dock.autohide	Dock slides away when not in use, giving back the bottom strip of the screen.	Dock 自動隱藏，唔用時完全消失，多返螢幕高度。	Dock 不用时收起，多回底部一条空间。
+dock.autohide-delay	Removes the deliberate pause before the Dock appears.	滑鼠推到螢幕底即刻彈出 Dock，冇 0.5 秒等待。	取消 Dock 弹出前的刻意延迟。
+dock.autohide-time	Animation length for show/hide; 0.15 s feels instant without looking broken.	Dock 出現／收起動畫時長，0.15 秒幾乎即時。	出现／收起动画长度；0.15 秒感觉即时又不突兀。
+dock.expose-speed	Mission Control and Space switching animation length.	Mission Control 動畫由 ~0.4 秒減到 0.1 秒，切 Space／睇全部窗口即刻出。	Mission Control 和切换 Space 的动画长度。
+dock.mineffect	genie stretches the window into the Dock; scale just shrinks it.	縮到 Dock 用 scale（直接縮細），唔用 genie（被吸落去），快好多。	genie 会把窗口拉长吸入 Dock；scale 只是缩小。
+dock.no-launch-anim	The bounce an icon does while its app starts.	關掉開 app 時 Dock 圖示彈跳，少一個干擾。	app 启动时图标弹跳的动画。
+dock.no-recents	The right-hand section of the Dock that fills with whatever you used last.	Dock 右邊唔再顯示「最近使用」區，只留你放上去嘅 app。	Dock 右边会自动填充最近用过的 app。
+finder.extensions	Every file shows its extension, so two same-named files are distinguishable.	所有檔案顯示副檔名，唔會再有兩個同名唔同類嘅檔睇唔出分別。	所有文件都显示扩展名，同名不同类的文件一眼分得出。
+finder.folders-first	Folders above files in every sort order.	排序時資料夾永遠排先，同 Linux 檔案管理員一致。	任何排序方式下文件夹都在文件前面。
+finder.fullpath	The title shows ~/dev/macfeel instead of macfeel.	Finder 標題列顯示完整路徑，唔止資料夾名。	标题显示 ~/dev/macfeel 而不是 macfeel。
+finder.no-ds-network	Keeps SMB/NFS shares clean for other machines.	網絡卷（NAS、SMB）唔再寫 .DS_Store，唔會污染共享資料夾。	SMB／NFS 共享不会留下 .DS_Store 污染其他机器。
+finder.no-ds-usb	Keeps USB sticks clean when you plug them into Linux or Windows.	USB／外接碟唔寫 .DS_Store。	USB 插到 Linux／Windows 上不会多出 .DS_Store。
+finder.no-ext-warning	You know what you are doing when you rename a file.	改副檔名唔再彈警告（你知自己做咩）。	改扩展名是你自己决定的，不用每次确认。
+finder.pathbar	Shows where you are in the tree, and lets you jump up quickly.	Finder 視窗底部顯示路徑列，一眼睇到檔案喺邊。	显示你在目录树的哪一层，方便往上跳。
+finder.statusbar	Item count and free space for the current folder.	Finder 視窗底部顯示「N 個項目，可用 xx GB」。	当前文件夹的项目数和可用空间。
+kbd.full-keyboard-access	Without this, Tab only moves between text fields and you cannot reach buttons from the keyboard.	Tab 可以 focus 所有控制項（按鈕、剔選框、下拉），唔止文字框。純鍵盤操作 app 嘅必要條件。	不开的话 Tab 只在文字框之间跳，键盘去不到按钮。
+kbd.no-autocapitalize	No capital after a full stop or a new line.	關自動大寫。句首、換行後唔會自動變大楷。	句号或换行后不再自动大写。
+kbd.no-autocorrect	No silent word replacement while typing.	關自動拼字修正，打字唔會無啦啦被換字。	打字时不会静静换掉你的字。
+kbd.no-hold-popup	With the popup on, holding 'a' shows ā á ǎ à. Off means it repeats — what a terminal or editor expects.	關掉「長按出 ē é ě è」嘅字元選單。開發者必需：長按 a 應該係重複 a，唔係彈候選字。	开启时按住 a 会弹 ā á ǎ à；关掉就是重复，终端和编辑器需要的行为。
+kbd.no-smart-dashes	-- becomes — in text fields; command-line flags stop working when you paste them back.	唔再自動把 -- 變破折號。命令行參數唔會被改壞。	文本框会把 -- 变成 —，命令行参数贴回去就失效。
+kbd.no-smart-quotes	macOS silently replaces " with “ ” in text fields, which breaks code, SQL, JSON and shell commands.	唔再自動把 " 變 “ ”。寫 code、寫 SQL、打指令唔會再被靜靜改咗引號。	macOS 会在文本框静静把 " 换成 “ ”，破坏代码、SQL、JSON 和命令行。
+kbd.no-text-completion	The grey inline suggestion that accepts on space.	關行內預測文字（灰字建議），唔會再有嘢蓋住你正在打嘅字。	灰色行内建议（按空白会接受）会关掉。
+kbd.repeat	Key repeat rate. 1 is the fastest the system allows; the default is 6 (~90 ms).	按住鍵嘅重複速度，1 係最快。打字、游標移動、刪除全部即刻變爽。	按键重复速度。1 是系统允许的最快；默认是 6（约 90ms）。
+kbd.repeat-initial	Delay before repeat starts. 10 is about 150 ms; the default is 25 (~500 ms).	按住幾耐先開始重複（10 ≈ 150ms）。同上一項一齊調，鍵盤反應才似 Linux。	开始重复前的延迟。10 约 150ms；默认 25（约 500ms）。
+menubar.hide-fullscreen	Full-screen apps lose the top strip.	全螢幕時唔顯示選單列，多返一行畫面。	全屏 app 不再有顶部一条。
+ptr.linear-mouse	Pointer distance becomes proportional to hand distance. Takes effect after a logout, and the Tracking speed slider overwrites it — a stable curve needs an event tap, which needs Accessibility.	關滑鼠加速：移動距離同手移動成正比。注意：要登出再登入先生效，而且你一拉「追蹤速度」滑桿就會被重設。	鼠标移动距离跟手成正比。要注销才生效，而且一拉追踪速度滑杆就会被覆盖 — 要稳定曲线需要事件拦截（Accessibility）。
+ptr.natural-scroll	Natural scrolling moves content with your fingers; the Linux/Windows convention is the opposite. Pick whichever your hands expect.	關「自然捲動」：兩指向上＝內容向上，同 Windows／Linux 一致。	自然滚动是内容跟着手指走；Linux／Windows 是相反方向。按你的习惯选。
+ptr.tap-to-click	A light tap counts as a click; pressing the trackpad is no longer required.	觸控板輕點即當左鍵，唔使按落去。	轻点就当点击，不用按下去。
+shot.format	PNG is lossless; the default can end up as JPEG.	截圖用 PNG（無損），唔用預設嘅 TIFF／JPEG。	PNG 无损；默认可能会存成 JPEG。
+shot.location	One folder instead of the desktop filling up.	截圖統一存去 ~/Pictures/Screenshots，唔會散落桌面。	统一一个文件夹，不会堆满桌面。
+shot.no-shadow	The shadow is baked into the PNG otherwise, which looks wrong pasted into a document.	截圖唔包窗口陰影，貼上網或者入文件乾淨好多。	否则阴影会烤进 PNG，贴进文件很难看。
+shot.no-thumbnail	The thumbnail that appears in the corner and covers your window.	截圖之後右下角唔再彈縮圖擋住畫面。	右下角弹出来的缩略图会挡住画面。
+spaces.fixed-order	By default macOS reorders Spaces by how recently you used them, so keyboard shortcuts move under you. Fixed order keeps Space 3 where you put it.	Space（桌面）唔再按「最近使用」重排。開咗之後 Space 1 永遠係 Space 1，同 i3／GNOME 工作區一樣。	macOS 默认按最近使用重排 Space，快捷键会跟着跑。固定顺序后 Space 3 永远在原位。
+win.corner	The radius the WindowServer gives every standard window. 0.1 is a hard right angle; values above ~20 start to look like a pill. Apps have to be relaunched to pick it up, and apps that draw their own chrome (games, some Electron apps) ignore it.	窗口四角半徑。0.1 係完全直角，4 等於 Catalina、9 等於 Sequoia、16 係 Tahoe 預設。改完要重開 app 才見到，Dock、選單列唔受影響。	窗口四角半径。0.1 是完全直角；超过 20 会开始像胶囊。要重开 app 才生效，自绘界面的 app（游戏、部分 Electron）不受影响。
+win.dblclick-maximize	Linux and Windows both zoom on title-bar double-click; macOS minimises by default, which is the opposite of what most people expect.	雙擊標題列變成「放到最大」，唔再係縮到 Dock。同 Windows／多數 Linux WM 一樣。	Linux 和 Windows 双击标题栏都是放大；macOS 默认反而是缩到 Dock。
+win.no-animations	Window open/close no longer animates. Launching an app looks instant instead of a 200 ms zoom.	關掉開窗／關窗動畫。開 app 同關 app 即刻完成，唔會再見到視窗由細變大。	开窗／关窗不再有动画，开 app 由 200ms 缩放变成即时。
+win.quicklook-instant	Space-bar preview appears without the grow animation.	空白鍵 Quick Look 唔再放大動畫，即刻出預覽。	空白键预览不再放大，直接出现。
+win.resize-time	How long the window takes to follow your drag. 0.001 s is effectively immediate; the default rubber-band feel is about 0.2 s.	拖窗口邊時嘅縮放動畫長度。0.001 等於即時跟手；預設大約 0.2 秒，拖嘅時候會有「拉橡皮」感。	拖动窗口时跟手的速度。0.001 秒等于即时；默认大约 0.2 秒会有拉橡皮感。
+win.save-expanded	Expanded panels let you type a path and see the whole tree; the collapsed one hides both.	儲存／開啟面板預設用展開版（可以打字輸入路徑），唔用簡化版。	展开版面板可以输入路径、看到完整目录；简化版两者都藏起来。
+win.save-expanded2	Newer AppKit reads a second key for the same panel; setting both covers old and new apps.	同上一項一樣，只係新版 AppKit 用另一個 key；兩個都設確保所有 app 都跟。	新版 AppKit 用另一个 key 控制同一个面板，两个都设才覆盖新旧 app。
+win.sidebar-float	Tahoe made sidebars float as a rounded card. Off puts the sidebar back against the window edge, which returns several pixels of width and matches older macOS.	Tahoe 起側邊欄會浮起變成圓角卡片。關掉之後側邊欄貼住窗口邊，同 Mail／Notes 舊版一樣，多咗可視面積。	Tahoe 起侧边栏浮起成圆角卡片。关掉后侧边栏贴住窗口边，多回几个像素宽度，跟旧版 macOS 一致。
+win.sidebar-radius	Only affects apps that use the glass sidebar material (Finder, Mail, Notes).	側邊欄玻璃圓角半徑，只影響有玻璃材質側欄嘅 app（Finder、Mail、Notes）。	只影响用玻璃侧边栏材质的 app（Finder、邮件、备忘录）。
+win.tableView-compact	Row height in every table view (Finder lists, Mail, Settings).	列表行高由「中」變「小」，Finder、郵件、設定入面嘅列表一次過睇多幾行。	所有列表的行高（Finder、邮件、设置）。

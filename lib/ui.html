@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +17,7 @@
   h1 { margin: 0; font: 700 26px/1 var(--mono); letter-spacing: .18em; }
   .meta { font: 12px var(--mono); color: var(--muted); }
   .spacer { flex: 1; }
-  .actions { display: flex; gap: 8px; align-items: center; }
+  .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   select, button { font: 12px var(--mono); padding: 7px 12px; background: transparent;
                    border: 1px solid var(--ink); color: var(--ink); cursor: pointer; }
   button.primary { background: var(--ink); color: var(--paper); }
@@ -45,7 +45,6 @@
   .side button.act:hover { background: var(--accent); border-color: var(--accent); }
   .badge { font: 10px var(--mono); letter-spacing: .1em; padding: 3px 7px; border: 1px solid currentColor; }
   .sync { color: var(--ok); } .drift { color: var(--warn); } .unset { color: var(--muted); }
-  .val { font: 11px var(--mono); color: var(--muted); }
   #out { white-space: pre-wrap; font: 12px var(--mono); background: #fffdf7;
          border: 1px solid var(--rule); padding: 12px; margin-top: 22px; display: none; }
   #out.on { display: block; }
@@ -61,43 +60,63 @@
     <div class="meta" id="meta">…</div>
     <div class="spacer"></div>
     <div class="actions">
-      <span class="meta">PRESET</span>
+      <select id="lang" title="Language"></select>
+      <span class="meta" data-ui="ui.preset">PRESET</span>
       <select id="profile">
-        <option value="linux">linux — 43 tweaks</option>
-        <option value="minimal">minimal — 5 tweaks</option>
-        <option value="chrome">chrome — 4 tweaks</option>
+        <option value="linux">linux — 43</option>
+        <option value="minimal">minimal — 5</option>
+        <option value="chrome">chrome — 4</option>
       </select>
-      <button id="dry">DRY RUN</button>
-      <button id="apply" class="primary">APPLY</button>
-      <button id="restore" title="回到未改之前">↩ RESTORE</button>
+      <button id="dry" data-ui="ui.dry">DRY RUN</button>
+      <button id="apply" class="primary" data-ui="ui.apply">APPLY</button>
+      <button id="restore" data-ui="ui.restore">↩ RESTORE</button>
     </div>
   </div>
   <nav id="tabs"></nav>
 </header>
 <main>
   <p class="lede" id="lede"></p>
-  <p class="legend"><b class="ok">IN SYNC</b> 已套用 · <b class="drift">DRIFT</b> 值唔同（可以覆蓋） · <b class="unset">UNSET</b> 系統未設過 · 右邊「還原此項」＝刪除該 key，回到系統預設</p>
+  <p class="legend" id="legend"></p>
   <div id="rows"></div>
   <pre id="out"></pre>
-  <footer>
-    macfeel writes user-level preferences only — no Accessibility, no SIP changes.
-    每一項都可以還原：RESTORE 會回到未改之前嘅狀態。
-    · <a href="https://buymeacoffee.com/kinfxhk" target="_blank">☕ Buy Me a Coffee</a>
-  </footer>
+  <footer id="footer"></footer>
 </main>
 <script>
-let STATE = null, active = "Shape";
+let STATE = null, active = null;
+const LANG_KEY = "macfeel.lang";
+
+function lang() { return STATE ? STATE.lang : "en"; }
+function ui(key) { return (STATE && STATE.ui && STATE.ui[key]) || key; }
+function fill(tpl, vars) {
+  return tpl.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+}
 
 async function api(path, body) {
-  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"},
-                                      body: JSON.stringify(body)} : {});
+  const sep = path.includes("?") ? "&" : "?";
+  const url = path.startsWith("/api/state") ? `${path}${sep}lang=${lang()}` : path;
+  const r = await fetch(url, body ? {method: "POST", headers: {"Content-Type": "application/json"},
+                                     body: JSON.stringify({...body, lang: lang()})} : {});
   return r.json();
 }
 
 function render() {
-  const {macos, sip, items, groups} = STATE;
+  const {macos, sip, items, groups, langs, langLabels} = STATE;
+  document.documentElement.lang = lang().replace("_", "-");
   document.getElementById("meta").textContent =
     `macOS ${macos} · ${sip.replace("System Integrity Protection status: ", "SIP ")}`;
+
+  const langSel = document.getElementById("lang");
+  if (langSel.options.length !== langs.length) {
+    langSel.innerHTML = langs.map(l => `<option value="${l}">${langLabels[l]}</option>`).join("");
+  }
+  langSel.value = lang();
+
+  document.querySelectorAll("[data-ui]").forEach(el => {
+    el.textContent = ui(el.getAttribute("data-ui"));
+  });
+
+  if (!active || !groups.some(g => g.name === active)) active = groups[0] ? groups[0].name : null;
+
   const tabs = document.getElementById("tabs");
   tabs.innerHTML = "";
   for (const g of groups) {
@@ -109,18 +128,22 @@ function render() {
     b.onclick = () => { active = g.name; render(); };
     tabs.appendChild(b);
   }
+
   const shown = items.filter(i => i.group === active);
   const g = groups.find(x => x.name === active) || {};
   const drift = shown.filter(i => i.state !== "sync").length;
   document.getElementById("lede").textContent =
-    `${g.subtitle || ""} — ${shown.length} 項，${drift} 項未套用。` +
-    `每項下面寫住佢改邊個 defaults key；右邊 APPLY 只改嗰一項，上面 APPLY 一次過套用成個 preset。`;
+    fill(ui("ui.lede"), {subtitle: g.subtitle || "", count: shown.length, drift});
+  document.getElementById("legend").innerHTML =
+    `<b class="sync">${ui("ui.in-sync")}</b> · <b class="drift">${ui("ui.drift")}</b> · ` +
+    `<b class="unset">${ui("ui.unset")}</b> — ${ui("ui.legend")}`;
+
   const rows = document.getElementById("rows");
   rows.innerHTML = "";
   for (const t of shown) {
     const row = document.createElement("div");
     row.className = "row";
-    const label = {sync: "IN SYNC", drift: "DRIFT", unset: "UNSET"}[t.state];
+    const label = {sync: ui("ui.in-sync"), drift: ui("ui.drift"), unset: ui("ui.unset")}[t.state];
     row.innerHTML = `
       <div>
         <div class="name">${t.desc}</div>
@@ -129,30 +152,32 @@ function render() {
       </div>
       <div class="side">
         <span class="badge ${t.state}">${label}</span>
-        <button class="${t.state === "sync" ? "" : "act"}" data-id="${t.id}">${t.state === "sync" ? "還原此項" : "APPLY"}</button>
+        <button class="${t.state === "sync" ? "" : "act"}" data-id="${t.id}">${t.state === "sync" ? ui("ui.revert") : ui("ui.apply")}</button>
       </div>`;
     row.querySelector("button").onclick = () => toggle(t.id);
     rows.appendChild(row);
   }
+  document.getElementById("footer").innerHTML =
+    `${ui("ui.footer")} · <a href="https://buymeacoffee.com/kinfxhk" target="_blank">☕ Buy Me a Coffee</a>`;
 }
 
 async function toggle(id) {
-  show("working…");
+  show("…");
   const r = await api("/api/toggle", {id});
   STATE = r.state; render(); show(r.out || "");
 }
 
 async function apply(dry) {
   const profile = document.getElementById("profile").value;
-  show(`running: macfeel apply ${profile}${dry ? " --dry-run" : ""}…`);
+  show(`macfeel apply ${profile}${dry ? " --dry-run" : ""}…`);
   const r = await api("/api/apply", {profile, dry});
   if (r.state) { STATE = r.state; render(); }
   show(r.out || "");
 }
 
 async function restore() {
-  if (!confirm("還原到未改之前嘅狀態？")) return;
-  show("restoring…");
+  if (!confirm(ui("ui.restore") + "?")) return;
+  show("…");
   const r = await api("/api/restore", {});
   if (r.state) { STATE = r.state; render(); }
   show(r.out || "");
@@ -167,8 +192,17 @@ function show(text) {
 document.getElementById("apply").onclick = () => apply(false);
 document.getElementById("dry").onclick = () => apply(true);
 document.getElementById("restore").onclick = restore;
+document.getElementById("lang").onchange = async (e) => {
+  localStorage.setItem(LANG_KEY, e.target.value);
+  const r = await api(`/api/state?lang=${e.target.value}`);
+  STATE = r; render();
+};
 
-api("/api/state").then(s => { STATE = s; render(); });
+(async () => {
+  const wanted = localStorage.getItem(LANG_KEY);
+  const r = await api(wanted ? `/api/state?lang=${wanted}` : "/api/state");
+  STATE = r; render();
+})();
 </script>
 </body>
 </html>

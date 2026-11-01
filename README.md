@@ -32,6 +32,21 @@ One tab per area — **Shape / Keyboard / Dock / Finder / Screenshots / Pointer 
 
 The panel is a single HTML file served by `python3` from the repo. No Electron, no build step, no dependencies, and it binds `127.0.0.1` only.
 
+## Languages
+
+The CLI and the panel ship in **English, 繁體中文 and 简体中文**.
+
+- The CLI follows `MACFEEL_LANG`, then `AppleLocale` (`zh-Hans` → 简体, any other `zh` → 繁體, else English).
+- `macfeel ui` starts in the same language; the selector in the top bar switches the panel live and remembers the choice.
+- Every tweak carries a one-line description and a longer explanation in all three languages — see [`lib/i18n/`](lib/i18n).
+
+```bash
+MACFEEL_LANG=zh_Hans macfeel status linux
+MACFEEL_LANG=en macfeel apply linux --dry-run
+```
+
+Adding a language is one more column in `lib/i18n/{desc,notes,ui}.tsv`; CI fails if any tweak or any key used by the panel is missing a translation.
+
 ## Why another defaults script
 
 The internet already has 50-line `defaults write` gists. They have two problems: you cannot undo them, and you cannot tell what they touched. macfeel is built around three rules:
