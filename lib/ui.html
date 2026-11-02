@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>macfeel</title>
+<script>
+  (() => {
+    const pref = localStorage.getItem("macfeel.theme") || "auto";
+    const dark = pref === "dark" || (pref === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    document.documentElement.dataset.pref = pref;
+  })();
+</script>
 <style>
   :root {
     --paper: #f6f3ea; --ink: #17140f; --muted: #6b6355; --rule: #d9d2c2;
@@ -83,6 +91,35 @@
   #modal-list .new { color: var(--accent); font-weight: 600; }
   .modal-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
   .modal-actions button { padding: 8px 16px; }
+
+  /* ---- dark: dusk, not black ---- */
+  :root[data-theme="dark"] {
+    --paper: #1e1b22; --ink: #ece7e1; --muted: #a79fae; --rule: #3a3446;
+    --accent: #e0895f; --ok: #7fc79a; --warn: #d9b06a;
+  }
+  [data-theme="dark"] .nav { background: #262230; border-right-color: #3a3446; }
+  [data-theme="dark"] .tabs button:hover { background: rgba(255,255,255,.05); }
+  [data-theme="dark"] .tabs button.on { background: #2f2a3b; box-shadow: none; }
+  [data-theme="dark"] button.primary { background: var(--accent); border-color: var(--accent); color: #1e1b22; }
+  [data-theme="dark"] button.primary:hover { background: #f0a077; border-color: #f0a077; }
+  [data-theme="dark"] .pv-head { background: #262230; color: var(--ink); }
+  [data-theme="dark"] .pv-head span { opacity: .7; }
+  [data-theme="dark"] .pv-stage { background: linear-gradient(160deg, #2a2534, #211d29); }
+  [data-theme="dark"] .pv-win { background: #272330; box-shadow: 0 16px 36px rgba(0,0,0,.45); }
+  [data-theme="dark"] .pv-bar { background: #332e3c; }
+  [data-theme="dark"] .pv-bar i { background: #4d4659; }
+  [data-theme="dark"] .pv-body { color: #e2dce8; }
+  [data-theme="dark"] .pv-dock { background: rgba(255,255,255,.09); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  [data-theme="dark"] .pv-dock span { background: #4d4659; }
+  [data-theme="dark"] .pv-label, [data-theme="dark"] .preset-note { color: #a79fae; }
+  [data-theme="dark"] .info { border-color: #4d4659; color: #a79fae; }
+  [data-theme="dark"] .info[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #1e1b22; }
+  [data-theme="dark"] .dot { background: #4d4659; }
+  [data-theme="dark"] .legendbox summary, [data-theme="dark"] #modal-list li.head,
+  [data-theme="dark"] #modal-list .old { color: #948b9f; }
+  [data-theme="dark"] .modal { background: rgba(16,14,20,.66); }
+  [data-theme="dark"] .modal .card { background: #262230; border-color: #4d4659; }
+  [data-theme="dark"] .slider { accent-color: var(--accent); }
   /* ---- app shell: vertical tabs ---- */
   .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
   .nav { background: #f2efe8; border-right: 1px solid var(--rule); padding: 20px 12px 16px;
@@ -168,6 +205,7 @@
   </div>
   <nav id="tabs" class="tabs"></nav>
   <div class="nav-actions">
+    <select id="theme" title="Theme"></select>
     <select id="lang" title="Language"></select>
     <select id="profile" title="preset"></select>
     <div class="preset-note" id="preset-note"></div>
@@ -294,6 +332,13 @@ function render() {
   document.getElementById("meta").textContent =
     `macOS ${macos} · ${sip.replace("System Integrity Protection status: ", "SIP ")}`;
 
+  const themeSel = document.getElementById("theme");
+  if (themeSel) {
+    const pref = document.documentElement.dataset.pref || "auto";
+    themeSel.innerHTML = ["auto", "light", "dark"]
+      .map(v => `<option value="${v}">${ui("theme." + v)}</option>`).join("");
+    themeSel.value = pref;
+  }
   const legendBtn = document.getElementById("legendbtn");
   if (legendBtn) legendBtn.textContent = "? " + ui("ui.legendbtn");
   const profSel = document.getElementById("profile");
@@ -491,6 +536,13 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal
 document.getElementById("apply").onclick = () => previewApply(false);
 document.getElementById("dry").onclick = () => previewApply(true);
 document.getElementById("restore").onclick = restore;
+document.getElementById("theme").onchange = (e) => {
+  const pref = e.target.value;
+  localStorage.setItem("macfeel.theme", pref);
+  const dark = pref === "dark" || (pref === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  document.documentElement.dataset.pref = pref;
+};
 document.getElementById("lang").onchange = async (e) => {
   localStorage.setItem(LANG_KEY, e.target.value);
   const r = await api(`/api/state?lang=${e.target.value}`);
