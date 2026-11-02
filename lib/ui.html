@@ -60,6 +60,37 @@
   footer { border-top: 1px solid var(--rule); margin-top: 30px; padding-top: 12px;
            font: 11px var(--mono); color: var(--muted); }
   a { color: var(--accent); }
+
+  /* ---- preview: a simulation of the settings, not a screenshot ---- */
+  .preview { margin: 24px 0 30px; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+  .pv-head { display: flex; align-items: baseline; gap: 12px; padding: 9px 14px; background: var(--ink); color: #fbfbf9; }
+  .pv-head b { font-size: 11px; letter-spacing: .16em; }
+  .pv-head span { font-size: 11px; opacity: .65; font-variant-numeric: tabular-nums; }
+  .pv-stage { position: relative; height: 200px; display: flex; align-items: center; justify-content: center;
+              background: linear-gradient(160deg, #eceae3, #d9d5ca); }
+  .pv-win { width: 76%; max-width: 430px; background: #fbfbf9; overflow: hidden;
+            box-shadow: 0 16px 36px rgba(0,0,0,.20); border-radius: 16px; transition: border-radius .3s ease; }
+  .pv-bar { height: 24px; background: #efece6; display: flex; align-items: center; gap: 6px; padding: 0 10px; }
+  .pv-bar i { width: 8px; height: 8px; border-radius: 50%; background: #c9c4ba; }
+  .pv-body { display: flex; justify-content: space-between; gap: 16px; padding: 13px 15px;
+             font: 13px/1.5 ui-monospace, Menlo, monospace; color: #33322e; }
+  .pv-ans { color: #8a1c1c; font-weight: 600; }
+  .pv-dock { position: absolute; bottom: 12px; display: flex; gap: 7px; padding: 7px 9px;
+             background: rgba(255,255,255,.78); border-radius: 11px; box-shadow: 0 6px 18px rgba(0,0,0,.12);
+             animation: pvDock 2.6s ease-in-out infinite; }
+  .pv-dock span { width: 24px; height: 24px; border-radius: 6px; background: #b7b1a5; display: block; }
+  @keyframes pvDock { 0%, 58% { transform: translateY(0); } 76%, 100% { transform: translateY(70px); } }
+
+  .pv-stage { gap: 26px; }
+  .pv-col { width: 41%; max-width: 380px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .pv-win { width: 100%; }
+  .pv-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #5a564d; }
+  .pv-dock { position: static; animation: none; }
+  .pv-pace span.after { background: #2f6b4f; }
+  .pv-pace { position: relative; height: 26px; background: #f6f3ec; border-top: 1px solid #e6e2d9; }
+  .pv-pace span { position: absolute; top: 50%; left: 8px; width: 9px; height: 9px; margin-top: -4.5px;
+                  border-radius: 50%; background: #8a1c1c; animation: pvPace .9s linear infinite alternate; }
+  @keyframes pvPace { from { left: 8px; } to { left: calc(100% - 18px); } }
 </style>
 </head>
 <body>
@@ -86,6 +117,31 @@
 <main>
   <p class="lede" id="lede"></p>
   <p class="legend" id="legend"></p>
+<section class="preview" aria-label="preview">
+  <div class="pv-head"><b data-ui="ui.preview.title">PREVIEW</b><span id="pv-meta"></span></div>
+  <div class="pv-stage">
+    <div class="pv-col">
+      <div class="pv-win" id="pv-now">
+        <div class="pv-bar"><i></i><i></i><i></i></div>
+        <div class="pv-body"><span>午餐 120 + 80</span><b class="pv-ans">200</b></div>
+      </div>
+      <div class="pv-dock" id="pv-dock-now"><span></span><span></span><span></span><span></span></div>
+      <div class="pv-label" id="pv-label-now">now</div>
+    </div>
+    <div class="pv-col">
+      <div class="pv-win" id="pv-after">
+        <div class="pv-bar"><i></i><i></i><i></i></div>
+        <div class="pv-body"><span>午餐 120 + 80</span><b class="pv-ans">200</b></div>
+      </div>
+      <div class="pv-dock" id="pv-dock-after"><span></span><span></span><span></span><span></span></div>
+      <div class="pv-label" id="pv-label-after">after</div>
+    </div>
+  </div>
+  <div class="pv-pace">
+    <span id="pv-dot-now"></span>
+    <span id="pv-dot-after" class="after"></span>
+  </div>
+</section>
   <div id="rows"></div>
   <pre id="out"></pre>
   <footer id="footer"></footer>
@@ -106,6 +162,56 @@ async function api(path, body) {
   const r = await fetch(url, body ? {method: "POST", headers: {"Content-Type": "application/json"},
                                      body: JSON.stringify({...body, lang: lang()})} : {});
   return r.json();
+}
+
+
+function liveNum(id, fb) {
+  const it = (STATE.items || []).find(x => x.id === id);
+  if (!it) return fb;
+  const raw = (it.current !== null && it.current !== undefined) ? it.current : it.want;
+  const v = parseFloat(raw);
+  return Number.isFinite(v) ? v : fb;
+}
+
+function liveLevel() {
+  const speed = STATE.speed || {};
+  const cur = liveNum("win.resize-time", NaN);
+  for (const [lvl, keys] of Object.entries(speed)) {
+    const v = parseFloat(keys["win.resize-time"]);
+    if (Number.isFinite(v) && Math.abs(v - cur) < 1e-6) return lvl;
+  }
+  return null;
+}
+
+function levelNum(lvl, id, fb) {
+  const speed = STATE.speed || {};
+  const v = parseFloat((speed[lvl] || {})[id]);
+  return Number.isFinite(v) ? v : fb;
+}
+
+function renderPreview() {
+  const now = liveLevel();
+  const cols = [
+    { lvl: "5", win: "pv-now",   dock: "pv-dock-now",   dot: "pv-dot-now",   label: "pv-label-now" },
+    { lvl: now || "1", win: "pv-after", dock: "pv-dock-after", dot: "pv-dot-after", label: "pv-label-after" },
+  ];
+  const meta = [];
+  for (const c of cols) {
+    const radius = c.lvl === "5" ? 16 : liveNum("win.corner", 16);
+    const dock = levelNum(c.lvl, "dock.autohide-time", 0.5);
+    const repeat = levelNum(c.lvl, "kbd.repeat", 6);
+    const w = document.getElementById(c.win);
+    if (w) w.style.borderRadius = Math.max(0, Math.min(radius, 18)) + "px";
+    const d = document.getElementById(c.dock);
+    if (d) d.style.animationDuration = (0.8 + dock * 2.2).toFixed(2) + "s";
+    const dot = document.getElementById(c.dot);
+    if (dot) dot.style.animationDuration = (repeat * 0.3).toFixed(2) + "s";
+    const lab = document.getElementById(c.label);
+    if (lab) lab.textContent = `level ${c.lvl} · corner ${radius}pt · dock ${dock}s · repeat ${repeat}`;
+    meta.push(`L${c.lvl}: ${radius}pt / ${dock}s / ${repeat}`);
+  }
+  const m = document.getElementById("pv-meta");
+  if (m) m.textContent = meta.join("   ->   ");
 }
 
 function render() {
@@ -171,6 +277,7 @@ function render() {
     sw.onclick = () => toggle(t.id);
     rows.appendChild(row);
   }
+  renderPreview();
   document.getElementById("footer").innerHTML =
     `${ui("ui.footer")} · <a href="https://buymeacoffee.com/kinfxhk" target="_blank">☕ Buy Me a Coffee</a>`;
 }
