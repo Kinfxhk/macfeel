@@ -1,34 +1,34 @@
 # key	en	zh_Hant	zh_Hans
 app.name	macfeel	macfeel	macfeel
-app.tagline	Make macOS feel like Linux	令 macOS 有 Linux 嘅手感	让 macOS 有 Linux 的手感
+app.tagline	Make macOS feel like Linux	讓 macOS 具備 Linux 的手感	让 macOS 有 Linux 的手感
 ui.preset	PRESET	預設組合	预设组合
 ui.dry	DRY RUN	試跑	试跑
 ui.apply	APPLY	套用	应用
 ui.restore	↩ RESTORE	↩ 還原	↩ 还原
 ui.in-sync	IN SYNC	已套用	已应用
-ui.drift	DRIFT	值唔同	值不同
+ui.drift	DRIFT	值不同	值不同
 ui.unset	UNSET	未設定	未设置
 ui.revert	還原此項	還原此項	还原此项
-ui.legend	IN SYNC means applied · DRIFT means a different value (apply overwrites it) · UNSET means macOS never set it · “restore this item” deletes the key and returns it to the system default	IN SYNC means applied · DRIFT means a different value (apply overwrites it) · UNSET means macOS never set it · “restore this item” deletes the key and returns it to the system default	IN SYNC 已应用 · DRIFT 值不同（可以覆盖） · UNSET 系统未设过 · 右边「还原此项」＝删除该 key，回到系统预设
-ui.lede	{subtitle} — {count} items, {drift} not applied. Each row names the defaults key it writes; APPLY on the right changes only that row, APPLY above applies the whole preset.	{subtitle} — {count} 項，{drift} 項未套用。每項下面寫住佢改邊個 defaults key；右邊 APPLY 只改嗰一項，上面 APPLY 一次過套用成個 preset。	{subtitle} — {count} 项，{drift} 项未应用。每项下面写住它改哪个 defaults key；右边 APPLY 只改那一项，上面 APPLY 一次过套用整个 preset。
-ui.footer	macfeel writes user-level preferences only — no Accessibility, no SIP changes. RESTORE returns to the state before macfeel ever ran.	macfeel 只寫用戶層設定 — 唔需要 Accessibility、唔會改 SIP。RESTORE 會回到未改之前嘅狀態。	macfeel 只写用户层设置 — 不需要 Accessibility、不会改 SIP。RESTORE 会回到未改之前的状态。
+ui.legend	IN SYNC means applied · DRIFT means a different value (apply overwrites it) · UNSET means macOS never set it · “restore this item” deletes the key and returns it to the system default	已套用＝目前值符合 · 值不同＝目前值不同（套用後會被覆蓋） · 未設定＝macOS 從未設定此項 · 「還原此項」會刪除該 key，回復系統預設	IN SYNC 已应用 · DRIFT 值不同（可以覆盖） · UNSET 系统未设过 · 右边「还原此项」＝删除该 key，回到系统预设
+ui.lede	{subtitle} — {count} items, {drift} not applied. Each row names the defaults key it writes; APPLY on the right changes only that row, APPLY above applies the whole preset.	{subtitle} — 共 {count} 項，其中 {drift} 項尚未套用。每一列都會標明它所修改的 defaults key；右側的 APPLY 只修改該項，上方的 APPLY 則一次套用整個預設組合。	{subtitle} — {count} 项，{drift} 项未应用。每项下面写住它改哪个 defaults key；右边 APPLY 只改那一项，上面 APPLY 一次过套用整个 preset。
+ui.footer	macfeel writes user-level preferences only — no Accessibility, no SIP changes. RESTORE returns to the state before macfeel ever ran.	macfeel 只寫入使用者層級設定 — 無需 Accessibility，也不會修改 SIP。RESTORE 會回復至修改前狀態。	macfeel 只写用户层设置 — 不需要 Accessibility、不会改 SIP。RESTORE 会回到未改之前的状态。
 ui.language	Language	語言	语言
-cli.already	already matches profile '{profile}' — nothing to do, no snapshot taken	已經同 preset '{profile}' 一致 — 冇嘢要做，唔會 snapshot	已经和 preset '{profile}' 一致 — 没有要做的，不会 snapshot
-cli.dry	dry run — nothing will be written ({count} pending)	試跑 — 唔會寫入任何嘢（{count} 項待改）	试跑 — 不会写入任何东西（{count} 项待改）
-cli.would	would set	會設	会设
-cli.set	set	已設	已设
+cli.already	already matches profile '{profile}' — nothing to do, no snapshot taken	已與預設組合 '{profile}' 一致 — 無需執行，不會建立快照	已经和 preset '{profile}' 一致 — 没有要做的，不会 snapshot
+cli.dry	dry run — nothing will be written ({count} pending)	試跑 — 不會寫入任何內容（{count} 項待修改）	试跑 — 不会写入任何东西（{count} 项待改）
+cli.would	would set	將設定	会设
+cli.set	set	已設定	已设
 cli.failed	FAILED	失敗	失败
 cli.snapshot	snapshot	快照	快照
-cli.changed	changed {count}	改咗 {count} 項	改了 {count} 项
+cli.changed	changed {count}	改了 {count} 項	改了 {count} 项
 cli.dock	Dock restarted	Dock 已重啟	Dock 已重启
 cli.finder	Finder restarted	Finder 已重啟	Finder 已重启
 cli.uiserver	menu bar restarted	選單列已重啟	菜单栏已重启
-cli.logout	some changes need a logout to take effect (mouse acceleration)	有啲改動要登出再登入先生效（滑鼠加速）	有些改动要注销再登录才生效（鼠标加速）
+cli.logout	some changes need a logout to take effect (mouse acceleration)	有些改動要登出再登入先生效（滑鼠加速）	有些改动要注销再登录才生效（鼠标加速）
 cli.restore-hint	undo: macfeel restore	還原：macfeel restore	还原：macfeel restore
 cli.restored	restored {count} keys from {dir}	由 {dir} 還原 {count} 個 key	从 {dir} 还原 {count} 个 key
-cli.no-snapshot	no snapshot recorded	冇任何快照	没有任何快照
+cli.no-snapshot	no snapshot recorded	沒有任何快照	没有任何快照
 cli.unknown	unknown command '{cmd}' (try: macfeel help)	未知指令 '{cmd}'（試 macfeel help）	未知命令 '{cmd}'（试 macfeel help）
-cli.macos-only	this tool only runs on macOS	呢個工具只行 macOS	这个工具只跑 macOS
+cli.macos-only	this tool only runs on macOS	這個工具只行 macOS	这个工具只跑 macOS
 cli.about	MIT licence · https://github.com/Kinfxhk/macfeel	MIT 授權 · https://github.com/Kinfxhk/macfeel	MIT 授权 · https://github.com/Kinfxhk/macfeel
 cli.coffee	if this helped: https://buymeacoffee.com/kinfxhk	如果幫到你：https://buymeacoffee.com/kinfxhk	如果帮到你：https://buymeacoffee.com/kinfxhk
 needs.relaunch	restart apps to see this	重開 app 才見到	重开 app 才见到
@@ -42,18 +42,22 @@ cli.needs.logout	log out and back in	登出再登入	注销再登录
 cli.status.matched	already match profile '{profile}'	已經同 preset '{profile}' 一致	已经和 preset '{profile}' 一致
 cli.doctor.sip	SIP	SIP	SIP
 cli.doctor.profiles	profiles	預設組合	预设组合
-cli.doctor.safety	macfeel never asks for Accessibility, never disables SIP, never touches system files.	macfeel 唔會要 Accessibility、唔會關 SIP、唔會改系統檔。	macfeel 不会要 Accessibility、不会关 SIP、不会改系统文件。
-cli.speed.title	Speed scale (1 fastest, 5 macOS default)	速度刻度（1 最快，5 係 macOS 預設）	速度刻度（1 最快，5 为 macOS 默认）
-cli.speed.level1	instant — no animation, 15 ms key repeat	瞬速 — 冇動畫，15ms 重複	瞬速 — 无动画，15ms 重复
-cli.speed.level2	fast — short fades, fastest sane typing	快 — 短過渡，打字最爽	快 — 短过渡，打字最快
+cli.doctor.safety	macfeel never asks for Accessibility, never disables SIP, never touches system files.	macfeel 不會要 Accessibility、不會關 SIP、不會改系統檔。	macfeel 不会要 Accessibility、不会关 SIP、不会改系统文件。
+cli.speed.title	Speed scale (1 fastest, 5 macOS default)	速度刻度（1 最快，5 是 macOS 預設）	速度刻度（1 最快，5 为 macOS 默认）
+cli.speed.level1	instant — no animation, 15 ms key repeat	瞬速 — 無動畫，15ms 重複	瞬速 — 无动画，15ms 重复
+cli.speed.level2	fast — short fades, fastest sane typing	快 — 短過渡，輸入最流暢	快 — 短过渡，打字最快
 cli.speed.level3	balanced — light animation, normal typing	平衡 — 輕動畫，正常打字	平衡 — 轻动画，正常打字
 cli.speed.level4	smooth — closer to stock, quick key repeat	順滑 — 接近原生，按鍵稍快	顺滑 — 接近原生，按键稍快
-cli.speed.level5	stock — Apple's own timing	原生 — Apple 原本節奏	原生 — Apple 原本节奏
+cli.speed.level5	stock — Apple's own timing	原生 — Apple 原有節奏	原生 — Apple 原本节奏
 cli.speed.at	current level: {level}	目前級別：{level}	当前级别：{level}
-cli.speed.custom	current: custom (some keys were set by hand)	目前：自訂（有啲 key 係手動改過）	当前：自定义（有些 key 是手动改过）
+cli.speed.custom	current: custom (some keys were set by hand)	目前：自訂（有些 key 是手動改過）	当前：自定义（有些 key 是手动改过）
 cli.speed.usage	usage: macfeel speed [1-5] [--dry-run]	用法：macfeel speed [1-5] [--dry-run]	用法：macfeel speed [1-5] [--dry-run]
 cli.speed.dry	level {level}: would set {count} keys	級別 {level}：會改 {count} 個 key	级别 {level}：会改 {count} 个 key
 cli.speed.applied	level {level} applied ({count} keys)	已套用級別 {level}（{count} 個 key）	已应用级别 {level}（{count} 个 key）
-ui.preview.title	PREVIEW — what these settings look like	前後對比 — 改咗之後係咩樣	前后对比 — 改了之后是什么样
-ui.preview.caption	Simulated, driven by your live values	按你目前設定模擬，唔係截圖	按你当前设置模拟，不是截图
+ui.preview.title	PREVIEW — what these settings look like	前後對比 — 套用後的實際差異	前后对比 — 改了之后是什么样
+ui.preview.caption	Simulated, driven by your live values	按你目前設定模擬，不是截圖	按你当前设置模拟，不是截图
 ui.details	Details	說明	说明
+ui.preview.stock	Stock (level 5)	原生（第 {level} 級）	原生（第 {level} 级）
+ui.preview.current	Current (level {level})	目前（第 {level} 級）	当前（第 {level} 级）
+ui.preview.side	corner {corner}pt · Dock {dock}s · key repeat {repeat}	圓角 {corner}pt · Dock {dock} 秒 · 按鍵重複 {repeat}	圆角 {corner}pt · Dock {dock} 秒 · 按键重复 {repeat}
+ui.preview.hint	Stock timing on the left, your current level on the right; the Dock animation follows the real duration.	左邊為原生節奏，右邊為目前級別；Dock 動畫會按實際時長播放。	左边为原生节奏，右边为当前级别；Dock 动画按实际时长播放。
