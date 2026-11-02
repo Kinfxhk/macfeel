@@ -10,7 +10,7 @@ ui.drift	DRIFT	值不同	值不同
 ui.unset	UNSET	未設定	未设置
 ui.revert	還原此項	還原此項	还原此项
 ui.legend	IN SYNC means applied · DRIFT means a different value (apply overwrites it) · UNSET means macOS never set it · “restore this item” deletes the key and returns it to the system default	已套用＝目前值符合 · 值不同＝目前值不同（套用後會被覆蓋） · 未設定＝macOS 從未設定此項 · 「還原此項」會刪除該 key，回復系統預設	IN SYNC 已应用 · DRIFT 值不同（可以覆盖） · UNSET 系统未设过 · 右边「还原此项」＝删除该 key，回到系统预设
-ui.lede	{subtitle} — {count} items, {drift} not applied. Each row names the defaults key it writes; APPLY on the right changes only that row, APPLY above applies the whole preset.	{subtitle} — 共 {count} 項，其中 {drift} 項尚未套用。每一列都會標明它所修改的 defaults key；右側的 APPLY 只修改該項，上方的 APPLY 則一次套用整個預設組合。	{subtitle} — {count} 项，{drift} 项未应用。每项下面写住它改哪个 defaults key；右边 APPLY 只改那一项，上面 APPLY 一次过套用整个 preset。
+ui.lede	Every row names the defaults key it writes. Applying a row changes only that row; the button above applies the whole preset.	每一列都會標明它所修改的 defaults 鍵值；右側的「套用」只修改該項，上方按鈕則一次套用整個預設組合。	每一列都会标明它所修改的 defaults 键值；右侧的「应用」只修改该项，上方按钮则一次应用整个预设组合。
 ui.footer	macfeel writes user-level preferences only — no Accessibility, no SIP changes. RESTORE returns to the state before macfeel ever ran.	macfeel 只寫入使用者層級設定 — 無需 Accessibility，也不會修改 SIP。RESTORE 會回復至修改前狀態。	macfeel 只写用户层设置 — 不需要 Accessibility、不会改 SIP。RESTORE 会回到未改之前的状态。
 ui.language	Language	語言	语言
 cli.already	already matches profile '{profile}' — nothing to do, no snapshot taken	已與預設組合 '{profile}' 一致 — 無需執行，不會建立快照	已经和 preset '{profile}' 一致 — 没有要做的，不会 snapshot
@@ -61,3 +61,4 @@ ui.preview.stock	Stock (level 5)	原生（第 {level} 級）	原生（第 {level
 ui.preview.current	Current (level {level})	目前（第 {level} 級）	当前（第 {level} 级）
 ui.preview.side	corner {corner}pt · Dock {dock}s · key repeat {repeat}	圓角 {corner}pt · Dock {dock} 秒 · 按鍵重複 {repeat}	圆角 {corner}pt · Dock {dock} 秒 · 按键重复 {repeat}
 ui.preview.hint	Stock timing on the left, your current level on the right; the Dock animation follows the real duration.	左邊為原生節奏，右邊為目前級別；Dock 動畫會按實際時長播放。	左边为原生节奏，右边为当前级别；Dock 动画按实际时长播放。
+ui.legendbtn	Legend	圖例	图例
