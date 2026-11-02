@@ -141,6 +141,22 @@ def detect_lang() -> str:
     return "en"
 
 
+PRESET_ALIAS = {
+    "light": "light",
+    "standard": "standard,light",
+    "hardcore": "hardcore,standard,light",
+    "chrome": "chrome,light",
+    "linux": "hardcore,standard,light",
+    "minimal": "light",
+}
+PRESET_ORDER = ["light", "standard", "hardcore"]
+
+
+def preset_count(profile, tweaks):
+    wanted = set(PRESET_ALIAS.get(profile, profile).split(","))
+    return sum(1 for tw in tweaks if wanted & set(tw["profiles"]))
+
+
 def load_ranges():
     """id -> {min, max, step} for the numeric tweaks that get a slider."""
     path = ROOT / "lib" / "ranges.conf"
@@ -213,6 +229,7 @@ def state(lang: str = "en"):
         "langLabels": LANG_LABEL,
         "ui": {k: (v.get(lang) or v.get("en")) for k, v in UI.items()},
         "items": items, "groups": groups, "speed": load_speed(),
+        "presets": [{"id": pid, "count": preset_count(pid, tweaks)} for pid in PRESET_ORDER],
     }
 
 

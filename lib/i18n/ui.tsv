@@ -62,3 +62,9 @@ ui.preview.current	Current (level {level})	目前（第 {level} 級）	当前（
 ui.preview.side	corner {corner}pt · Dock {dock}s · key repeat {repeat}	圓角 {corner}pt · Dock {dock} 秒 · 按鍵重複 {repeat}	圆角 {corner}pt · Dock {dock} 秒 · 按键重复 {repeat}
 ui.preview.hint	Stock timing on the left, your current level on the right; the Dock animation follows the real duration.	左邊為原生節奏，右邊為目前級別；Dock 動畫會按實際時長播放。	左边为原生节奏，右边为当前级别；Dock 动画按实际时长播放。
 ui.legendbtn	Legend	圖例	图例
+preset.light	Light	輕量	轻量
+preset.light.note	Typing and Finder basics only — nothing changes the look of windows or any global behaviour.	只調整輸入與 Finder 基本顯示，不改動視窗外觀或任何全域行為。	只调整输入与 Finder 基本显示，不改动窗口外观或任何全局行为。
+preset.standard	Standard	標準	标准
+preset.standard.note	Light plus appearance: window corners, Dock behaviour, Finder layout, screenshots.	包含輕量項目，並加入外觀：視窗圓角、Dock 行為、Finder 版面、截圖設定。	包含轻量项目，并加入外观：窗口圆角、Dock 行为、Finder 版面、截图设置。
+preset.hardcore	Hardcore	硬核	硬核
+preset.hardcore.note	Everything, including global input behaviour, scroll direction and menu bar.	全部項目，包括全域輸入行為、捲動方向與選單列。	全部项目，包括全局输入行为、滚动方向与菜单栏。

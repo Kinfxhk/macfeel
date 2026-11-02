@@ -56,13 +56,22 @@ The internet already has 50-line `defaults write` gists. They have two problems:
 2. **`restore` is per-key, not per-domain.** Importing an old whole domain would silently roll back preferences other apps wrote since. macfeel restores only the keys it owns — writing the saved value, or deleting the key if it did not exist before.
 3. **`--dry-run` is the default mental model.** Nothing runs blind; every tweak carries a description and a restart hint.
 
-## Profiles
+## Profiles · 預設組合
 
-| Profile | What it is for | Tweaks |
+| Preset | What it is for | Tweaks |
 |---|---|---|
-| `linux` (default) | the full "stop wasting my time" set | 46 |
-| `minimal` | just shape and speed: square corners, no animations, fast key repeat | 5 |
-| `chrome` | hides the menu bar and the Dock on top of `linux` | 4 |
+| `light` | typing and Finder basics; nothing global | 15 |
+| `standard` | light + appearance, Dock behaviour, Finder layout, screenshots | 38 |
+| `hardcore` | everything, including global input and the menu bar | 47 |
+| `chrome` | opt-in set on top of light: hide the menu bar and the Dock | 19 |
+
+Presets are **cumulative**: `standard` includes everything in `light`, `hardcore` includes `standard`. `linux` and `minimal` still work as aliases for `hardcore` and `light`.
+
+```bash
+macfeel list light       # what it would change
+macfeel status standard  # current vs wanted, per key
+macfeel apply standard   # snapshot, then write
+```
 
 ```bash
 macfeel list linux      # what it would change

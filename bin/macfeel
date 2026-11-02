@@ -81,7 +81,23 @@ read_tweaks() {
   awk -F'\t' 'NF==8 && $1 !~ /^#/ {print}' "$TWEAKS"
 }
 
-in_profile() { case ",$1," in *",$2,"*) return 0 ;; esac; return 1; }
+expand_profile() {  # presets are cumulative; old names keep working
+  case "$1" in
+    linux|hardcore) printf 'hardcore,standard,light' ;;
+    standard)       printf 'standard,light' ;;
+    minimal|light)  printf 'light' ;;
+    chrome)         printf 'chrome,light' ;;
+    *)              printf '%s' "$1" ;;
+  esac
+}
+
+in_profile() {  # profiles-field requested-csv — true when any requested token is listed
+  local IFS=',' r
+  for r in $2; do
+    case ",$1," in *",$r,"*) return 0 ;; esac
+  done
+  return 1
+}
 
 read_value() { defaults read "$1" "$2" 2>/dev/null || true; }
 
@@ -139,19 +155,19 @@ take_snapshot() {
 
 # ------------------------------------------------------------------- commands ---
 cmd_list() {
-  local profile="${1:-linux}"
+  local profile="${1:-hardcore}" sel; sel="$(expand_profile "$profile")"
   while IFS=$'\t' read -r id profiles domain key type value needs desc; do
-    in_profile "$profiles" "$profile" || continue
+    in_profile "$profiles" "$sel" || continue
     printf '%-22s %-7s %s=%s\n' "$id" "$type" "$key" "$value"
     printf '  %s\n' "$(i18n_text "$I18N/desc.tsv" "$id")"
   done < <(read_tweaks)
 }
 
 cmd_status() {
-  local profile="${1:-linux}" drift=0 total=0
+  local profile="${1:-hardcore}" drift=0 total=0 sel; sel="$(expand_profile "$profile")"
   printf '%-22s %-8s %s\n' "ID" "STATE" "CURRENT -> WANTED"
   while IFS=$'\t' read -r id profiles domain key type value needs desc; do
-    in_profile "$profiles" "$profile" || continue
+    in_profile "$profiles" "$sel" || continue
     total=$((total + 1))
     local cur want; cur="$(read_value "$domain" "$key")"; want="$(expand_tilde "$value")"
     if [ -z "$cur" ]; then
@@ -169,7 +185,7 @@ cmd_status() {
 }
 
 cmd_apply() {
-  local profile="linux" dry=0
+  local profile="hardcore" dry=0
   while [ $# -gt 0 ]; do
     case "$1" in
       --dry-run|-n) dry=1 ;;
@@ -182,10 +198,11 @@ cmd_apply() {
 
   # Collect what actually differs first: a snapshot of an already-applied machine is not a
   # restore point, it is a copy of the change.
+  local sel; sel="$(expand_profile "$profile")"
   local pending; pending="$(mktemp "${TMPDIR:-/tmp}/macfeel.XXXXXX")"
   trap 'rm -f "$pending"' RETURN
   while IFS=$'\t' read -r id profiles domain key type value needs desc; do
-    in_profile "$profiles" "$profile" || continue
+    in_profile "$profiles" "$sel" || continue
     local cur want; cur="$(read_value "$domain" "$key")"; want="$(expand_tilde "$value")"
     if [ -n "$cur" ] && [ "$(normalise "$cur")" = "$(normalise "$want")" ]; then continue; fi
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$id" "$profiles" "$domain" "$key" "$type" "$value" "$needs" "$desc" >> "$pending"
@@ -384,8 +401,10 @@ cmd_doctor() {
   say "tweaks:     $(read_tweaks | wc -l | tr -d ' ')"
   say ""
   say "$(t cli.doctor.profiles):"
-  for p in linux minimal chrome; do
-    say "  $p: $(read_tweaks | awk -F'\t' -v p="$p" '$2 ~ ("(^|,)" p "(,|$)")' | wc -l | tr -d ' ')"
+  for p in light standard hardcore chrome; do
+    local sel n; sel="$(expand_profile "$p")"
+    n="$(read_tweaks | awk -F'\t' -v sel=",$sel," 'BEGIN{n=split(sel,a,",");for(i=1;i<=n;i++)if(a[i]!="")want[a[i]]=1} {k=split($2,b,",");for(i=1;i<=k;i++)if(b[i] in want){c++;break}} END{print c+0}')"
+    say "  $p: $n"
   done
   say ""
   say "$(t cli.doctor.safety)"
