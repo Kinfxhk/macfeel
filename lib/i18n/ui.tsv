@@ -84,3 +84,6 @@ dialog.col.value	Before → After	原本 → 變更後	原本 → 变更后
 theme.auto	Match system	跟隨系統	跟随系统
 theme.light	Light	淺色	浅色
 theme.dark	Dark	深色	深色
+ui.row.default	default {value}	預設 {value}	默认 {value}
+ui.row.default.unset	default —	預設 —	默认 —
+ui.row.defaulttag	(default)	（預設）	（默认）

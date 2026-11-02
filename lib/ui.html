@@ -165,6 +165,19 @@
   details.legendbox > summary { cursor: pointer; font-size: 11px; letter-spacing: .1em; color: #8a867c; list-style: none; }
   details.legendbox > summary::-webkit-details-marker { display: none; }
   details.legendbox > summary:hover { color: #8a1c1c; }
+
+  .sl-wrap { position: relative; flex: 1; display: flex; align-items: center; z-index: 1; }
+  .sl-ticks { position: absolute; left: 0; right: 0; top: 50%; height: 0; pointer-events: none; z-index: 3; }
+  .sl-ticks i { position: absolute; top: -9px; width: 2px; height: 18px; background: var(--muted); opacity: .9; }
+  .sl-ticks i.def { background: var(--accent); height: 22px; top: -11px; width: 3px; opacity: 1; }
+  .sl-ends { display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline;
+             gap: 8px; margin-top: 1px; font: 10px var(--mono); color: #8d887c; }
+  .sl-ends .lo { text-align: left; }
+  .sl-ends .hi { text-align: right; }
+  .sl-ends .sl-def { color: var(--accent); }
+  .detail .def { margin-top: 4px; font: 11px var(--mono); color: #8d887c; }
+  [data-theme="dark"] .sl-ticks i { background: #4d4659; }
+  [data-theme="dark"] .sl-ends, [data-theme="dark"] .detail .def { color: #948b9f; }
   /* ---- adjustable numeric rows ---- */
   .slider { flex: 1; width: auto; margin: 0; accent-color: #8a1c1c; height: 18px; }
   .slabel { display: flex; align-items: center; gap: 10px; width: 100%; }
@@ -414,17 +427,23 @@ function render() {
         <div class="detail" hidden>
           <div class="note full">${t.desc}</div>
           ${t.note ? `<div class="note">${t.note}</div>` : ""}
+          <div class="def">${t.default ? (t.default === "-" ? ui("ui.row.default.unset") : ui("ui.row.default").replace("{value}", t.default)) : ""}</div>
           <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}${t.needsLabel ? `<span class="tag">${t.needsLabel}</span>` : ""}</div>
         </div>
       </div>
       <div class="side">
         ${t.range ? `
         <div class="slabel">
-          <input class="slider" type="range" data-id="${t.id}" aria-label="${t.desc}"
-                 min="${t.range.min}" max="${t.range.max}" step="${t.range.step}"
-                 value="${t.current !== null && t.current !== "" ? t.current : t.want}">
+          <div class="sl-wrap">
+            <input class="slider" type="range" data-id="${t.id}" aria-label="${t.desc}"
+                   min="${t.range.min}" max="${t.range.max}" step="${t.range.step}"
+                   data-min="${t.range.min}" data-max="${t.range.max}" data-default="${t.default || ""}"
+                   value="${t.current !== null && t.current !== "" ? t.current : t.want}">
+            <div class="sl-ticks" data-role="ticks"></div>
+          </div>
           <b data-role="cur">${t.current !== null && t.current !== "" ? t.current : "—"}</b>
-        </div>` : `
+        </div>
+        <div class="sl-ends">${sliderEnds(t)}</div>` : `
         <div class="swrow">
           <button class="switch" role="switch" aria-checked="${t.state === "sync"}" data-id="${t.id}"
                   aria-label="${t.desc}" title="${t.state === "sync" ? ui("ui.revert") : ui("ui.apply")}"><span></span></button>
@@ -441,6 +460,20 @@ function render() {
     if (sw) sw.onclick = () => toggle(t.id);
     const sl = row.querySelector(".slider");
     if (sl) {
+      const ticks = row.querySelector('[data-role="ticks"]');
+      if (ticks) {
+        const min = parseFloat(sl.dataset.min), max = parseFloat(sl.dataset.max);
+        const def = parseFloat(sl.dataset.default);
+        const pct = v => ((v - min) / (max - min)) * 100;
+        const defAtMin = Number.isFinite(def) && def <= min;
+        const defAtMax = Number.isFinite(def) && def >= max;
+        let html = `<i class="${defAtMin ? "def" : ""}" style="left:0"></i>`
+                 + `<i class="${defAtMax ? "def" : ""}" style="left:100%"></i>`;
+        if (Number.isFinite(def) && !defAtMin && !defAtMax) {
+          html += `<i class="def" style="left:${pct(def).toFixed(2)}%" title="${ui("ui.row.default").replace("{value}", def)}"></i>`;
+        }
+        ticks.innerHTML = html;
+      }
       const out = row.querySelector('[data-role="cur"]');
       sl.oninput = () => { if (out) out.textContent = sl.value; };
       sl.onchange = async () => {
@@ -461,6 +494,15 @@ async function toggle(id) {
   show("…");
   const r = await api("/api/toggle", {id});
   STATE = r.state; render(); show(r.out || "");
+}
+
+function sliderEnds(t) {
+  const def = (t.default && t.default !== "-")
+    ? ui("ui.row.default").replace("{value}", t.default)
+    : ui("ui.row.default.unset");
+  return `<span class="lo">${t.range.min}</span>`
+       + `<span class="sl-def">${def}</span>`
+       + `<span class="hi">${t.range.max}</span>`;
 }
 
 function fmtValue(v, type, unit, label) {
