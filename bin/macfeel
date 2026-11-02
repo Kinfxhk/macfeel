@@ -259,9 +259,9 @@ cmd_restore() {
   say "$(t cli.restored dir="$dir")"
 }
 
-cmd_set() {  # <id> | <id> --unset
-  local id="${1:-}" unset=0
-  [ "${2:-}" = "--unset" ] && unset=1
+cmd_set() {  # <id> [value] | <id> --unset
+  local id="${1:-}" val="${2:-}" unset=0
+  [ "$val" = "--unset" ] && unset=1 && val=""
   [ -n "$id" ] || die "usage: macfeel set <id> [--unset]"
   local found=0
   while IFS=$'\t' read -r tid profiles domain key type value needs desc; do
@@ -271,10 +271,11 @@ cmd_set() {  # <id> | <id> --unset
       defaults delete "$domain" "$key" 2>/dev/null || true
       say "unset $id ($domain $key)"
     else
-      write_value "$domain" "$key" "$type" "$value"
+      local use="$value"; [ -n "$val" ] && use="$val"
+      write_value "$domain" "$key" "$type" "$use"
       local now; now="$(read_value "$domain" "$key")"
-      [ "$(normalise "$now")" = "$(normalise "$(expand_tilde "$value")")" ] \
-        && say "set $id = $value" || die "write did not stick: $id reads $now"
+      [ "$(normalise "$now")" = "$(normalise "$(expand_tilde "$use")")" ] \
+        && say "set $id = $use" || die "write did not stick: $id reads $now"
     fi
   done < <(read_tweaks)
   [ $found -eq 1 ] || die "unknown tweak id: $id"

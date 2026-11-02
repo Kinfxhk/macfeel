@@ -61,6 +61,11 @@
            font: 11px var(--mono); color: var(--muted); }
   a { color: var(--accent); }
 
+
+  /* ---- adjustable numeric rows ---- */
+  .slider { width: 100%; margin: 2px 0 4px; accent-color: #8a1c1c; height: 18px; }
+  .slabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .slabel b { font: 600 12px ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
   /* ---- preview: a simulation of the settings, not a screenshot ---- */
   .preview { margin: 24px 0 30px; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
   .pv-head { display: flex; align-items: baseline; gap: 12px; padding: 9px 14px; background: var(--ink); color: #fbfbf9; }
@@ -266,15 +271,34 @@ function render() {
         <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}${t.needsLabel ? `<span class="tag">${t.needsLabel}</span>` : ""}</div>
       </div>
       <div class="side">
+        ${t.range ? `
+        <input class="slider" type="range" data-id="${t.id}" aria-label="${t.desc}"
+               min="${t.range.min}" max="${t.range.max}" step="${t.range.step}"
+               value="${t.current !== null && t.current !== "" ? t.current : t.want}">
+        <div class="slabel">
+          <b data-role="cur">${t.current !== null && t.current !== "" ? t.current : "—"}</b>
+          <span class="badge ${t.state}">${label}</span>
+        </div>` : `
         <div class="swrow">
           <span class="state-label ${t.state === "sync" ? "on" : ""}">${t.state === "sync" ? "ON" : "OFF"}</span>
           <button class="switch" role="switch" aria-checked="${t.state === "sync"}" data-id="${t.id}"
                   aria-label="${t.desc}" title="${t.state === "sync" ? ui("ui.revert") : ui("ui.apply")}"><span></span></button>
         </div>
-        <span class="badge ${t.state}">${label}</span>
+        <span class="badge ${t.state}">${label}</span>`}
       </div>`;
     const sw = row.querySelector(".switch");
-    sw.onclick = () => toggle(t.id);
+    if (sw) sw.onclick = () => toggle(t.id);
+    const sl = row.querySelector(".slider");
+    if (sl) {
+      const out = row.querySelector('[data-role="cur"]');
+      sl.oninput = () => { if (out) out.textContent = sl.value; };
+      sl.onchange = async () => {
+        show("…");
+        const r = await api("/api/set", {id: t.id, value: sl.value});
+        if (r.state) { STATE = r.state; render(); }
+        show(r.out || "");
+      };
+    }
     rows.appendChild(row);
   }
   renderPreview();
