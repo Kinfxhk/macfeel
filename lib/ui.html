@@ -9,7 +9,9 @@
     --paper: #f6f3ea; --ink: #17140f; --muted: #6b6355; --rule: #d9d2c2;
     --accent: #b3402a; --ok: #2f6b3f; --warn: #a2711b; --mono: "SF Mono", ui-monospace, Menlo, monospace;
   }
-  * { box-sizing: border-box; border-radius: 0 !important; }
+  * { box-sizing: border-box; }
+  /* kill the UA rounding on controls without poisoning class-level radii */
+  button, select, input, textarea { border-radius: 0; }
   body { margin: 0; background: var(--paper); color: var(--ink);
          font: 14px/1.5 -apple-system, "Helvetica Neue", "PingFang HK", sans-serif; }
   header { border-bottom: 2px solid var(--ink); padding: 18px 28px 0; }
@@ -95,7 +97,7 @@
   .row { align-items: center; }
   .line { display: flex; align-items: center; gap: 9px; min-width: 0; }
   .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .info { width: 18px; height: 18px; flex: 0 0 auto; border-radius: 50%; border: 1px solid #cfcac0;
+  .info { width: 17px; height: 17px; flex: 0 0 auto; border-radius: 999px; border: 1px solid #cfcac0;
           background: transparent; color: #8a867c; font: 700 11px/1 ui-monospace, Menlo, monospace;
           display: grid; place-items: center; cursor: pointer; padding: 0; transition: .15s; }
   .info:hover { border-color: #8a1c1c; color: #8a1c1c; }
@@ -104,14 +106,14 @@
   .dot.sync { background: #2f6b4f; } .dot.drift { background: #b58900; } .dot.unset { background: #c9c4ba; }
   .detail { margin: 8px 0 2px 27px; font-size: 12.5px; line-height: 1.55; color: #5a564d; }
   .detail .key { margin-top: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #8d887c; }
-  details.legendbox { margin: 0 0 14px; }
+  details.legendbox { display: inline-block; margin: 0 0 12px 6px; vertical-align: baseline; }
   details.legendbox > summary { cursor: pointer; font-size: 11px; letter-spacing: .1em; color: #8a867c; list-style: none; }
   details.legendbox > summary::-webkit-details-marker { display: none; }
   details.legendbox > summary:hover { color: #8a1c1c; }
   /* ---- adjustable numeric rows ---- */
-  .slider { width: 100%; margin: 2px 0 4px; accent-color: #8a1c1c; height: 18px; }
-  .slabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .slabel b { font: 600 12px ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .slider { flex: 1; width: auto; margin: 0; accent-color: #8a1c1c; height: 18px; }
+  .slabel { display: flex; align-items: center; gap: 10px; width: 100%; }
+  .slabel b { min-width: 36px; text-align: right; font: 600 12px ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
   /* ---- preview: a simulation of the settings, not a screenshot ---- */
   .preview { margin: 24px 0 30px; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
   .pv-head { display: flex; align-items: baseline; gap: 12px; padding: 9px 14px; background: var(--ink); color: #fbfbf9; }
@@ -168,7 +170,7 @@
 </aside>
 <main>
   <p class="lede" id="lede"></p>
-  <details class="legendbox"><summary>?</summary><p class="legend" id="legend"></p></details>
+  <details class="legendbox" title="legend"><summary>? legend</summary><p class="legend" id="legend"></p></details>
 <section class="preview" aria-label="preview">
   <div class="pv-head"><b data-ui="ui.preview.title">PREVIEW</b><span id="pv-meta"></span></div>
   <div class="pv-stage">
@@ -340,10 +342,10 @@ function render() {
       </div>
       <div class="side">
         ${t.range ? `
-        <input class="slider" type="range" data-id="${t.id}" aria-label="${t.desc}"
-               min="${t.range.min}" max="${t.range.max}" step="${t.range.step}"
-               value="${t.current !== null && t.current !== "" ? t.current : t.want}">
         <div class="slabel">
+          <input class="slider" type="range" data-id="${t.id}" aria-label="${t.desc}"
+                 min="${t.range.min}" max="${t.range.max}" step="${t.range.step}"
+                 value="${t.current !== null && t.current !== "" ? t.current : t.want}">
           <b data-role="cur">${t.current !== null && t.current !== "" ? t.current : "—"}</b>
         </div>` : `
         <div class="swrow">
