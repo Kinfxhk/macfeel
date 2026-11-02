@@ -138,12 +138,7 @@
   .pv-col { width: 41%; max-width: 380px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .pv-win { width: 100%; }
   .pv-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #5a564d; }
-  .pv-dock { position: static; animation: none; }
-  .pv-pace span.after { background: #2f6b4f; }
-  .pv-pace { position: relative; height: 26px; background: #f6f3ec; border-top: 1px solid #e6e2d9; }
-  .pv-pace span { position: absolute; top: 50%; left: 8px; width: 9px; height: 9px; margin-top: -4.5px;
-                  border-radius: 50%; background: #8a1c1c; animation: pvPace .9s linear infinite alternate; }
-  @keyframes pvPace { from { left: 8px; } to { left: calc(100% - 18px); } }
+  .pv-dock { position: static; animation: none; } to { left: calc(100% - 18px); } }
 </style>
 </head>
 <body>
@@ -190,10 +185,6 @@
       <div class="pv-dock" id="pv-dock-after"><span></span><span></span><span></span><span></span></div>
       <div class="pv-label" id="pv-label-after">after</div>
     </div>
-  </div>
-  <div class="pv-pace">
-    <span id="pv-dot-now"></span>
-    <span id="pv-dot-after" class="after"></span>
   </div>
 </section>
   <div id="rows"></div>
@@ -244,28 +235,28 @@ function levelNum(lvl, id, fb) {
 }
 
 function renderPreview() {
-  const now = liveLevel();
+  const now = liveLevel() || "1";
   const cols = [
-    { lvl: "5", win: "pv-now",   dock: "pv-dock-now",   dot: "pv-dot-now",   label: "pv-label-now" },
-    { lvl: now || "1", win: "pv-after", dock: "pv-dock-after", dot: "pv-dot-after", label: "pv-label-after" },
+    { lvl: "5", name: ui("ui.preview.stock"),   win: "pv-now",   label: "pv-label-now" },
+    { lvl: now, name: ui("ui.preview.current"), win: "pv-after", label: "pv-label-after" },
   ];
-  const meta = [];
   for (const c of cols) {
     const radius = c.lvl === "5" ? 16 : liveNum("win.corner", 16);
     const dock = levelNum(c.lvl, "dock.autohide-time", 0.5);
     const repeat = levelNum(c.lvl, "kbd.repeat", 6);
     const w = document.getElementById(c.win);
     if (w) w.style.borderRadius = Math.max(0, Math.min(radius, 18)) + "px";
-    const d = document.getElementById(c.dock);
+    const d = document.getElementById(c.win + "").closest(".pv-col").querySelector(".pv-dock");
     if (d) d.style.animationDuration = (0.8 + dock * 2.2).toFixed(2) + "s";
-    const dot = document.getElementById(c.dot);
-    if (dot) dot.style.animationDuration = (repeat * 0.3).toFixed(2) + "s";
     const lab = document.getElementById(c.label);
-    if (lab) lab.textContent = `level ${c.lvl} · corner ${radius}pt · dock ${dock}s · repeat ${repeat}`;
-    meta.push(`L${c.lvl}: ${radius}pt / ${dock}s / ${repeat}`);
+    if (lab) {
+      const name = c.name.replace("{level}", c.lvl);
+      lab.textContent = name + " — " + fill(ui("ui.preview.side"),
+        {corner: radius, dock: dock, repeat: repeat});
+    }
   }
   const m = document.getElementById("pv-meta");
-  if (m) m.textContent = meta.join("   ->   ");
+  if (m) m.textContent = ui("ui.preview.hint");
 }
 
 function render() {
@@ -292,7 +283,7 @@ function render() {
     const n = items.filter(i => i.group === g.name).length;
     if (!n) continue;
     const b = document.createElement("button");
-    b.innerHTML = `${g.name}<span>${n}</span>`;
+    b.innerHTML = `${g.subtitle || g.name}<span>${n}</span>`;
     if (g.name === active) b.className = "on";
     b.onclick = () => { active = g.name; render(); };
     tabs.appendChild(b);

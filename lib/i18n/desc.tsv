@@ -1,48 +1,48 @@
 # id	en	zh_Hant	zh_Hans
-chrome.hide-menubar	Menu bar auto-hides; move the pointer up to reveal it.	選單列自動隱藏	菜单栏自动隐藏，鼠标推上去才出现。
+chrome.hide-menubar	Menu bar auto-hides; move the pointer up to reveal it.	選單列自動隱藏	菜单栏自动隐藏，鼠标向上移動才出現现。
 dock.autohide	Dock hides when unused.	Dock 自動隱藏	Dock 自动隐藏。
-dock.autohide-delay	Dock appears the moment the pointer hits the bottom edge.	滑到底即刻出	鼠标推到底部即刻弹出 Dock。
+dock.autohide-delay	Dock appears the moment the pointer hits the bottom edge.	滑鼠移至底部立即顯示	鼠标移至底部立即弹出 Dock。
 dock.autohide-time	Faster Dock show/hide animation.	隱藏／出現動畫時長	Dock 出现／收起动画更快。
 dock.expose-speed	Mission Control animation cut to 0.1 s.	Mission Control 動畫	Mission Control 动画缩短到 0.1 秒。
-dock.mineffect	Windows scale into the Dock instead of the genie effect.	縮到 Dock 用 scale（快過 genie）	窗口缩到 Dock 用 scale，不用 genie。
-dock.no-launch-anim	No bounce when an app launches.	關 Dock 開 app 彈跳動畫	开 app 时 Dock 图标不再弹跳。
-dock.no-recents	No recent-apps section in the Dock.	唔顯示最近用過嘅 app	Dock 不再显示最近使用的 app。
+dock.mineffect	Windows scale into the Dock instead of the genie effect.	縮到 Dock 使用 scale（比 genie 快）	窗口缩到 Dock 用 scale，不用 genie。
+dock.no-launch-anim	No bounce when an app launches.	關閉 Dock 開啟程式的彈跳動畫	开 app 时 Dock 图标不再弹跳。
+dock.no-recents	No recent-apps section in the Dock.	不顯示最近使用過的程式	Dock 不再显示最近使用的 app。
 finder.extensions	Show file extensions everywhere.	顯示副檔名	所有文件显示扩展名。
-finder.folders-first	Folders sort before files.	資料夾排先	排序时文件夹排前面。
+finder.folders-first	Folders sort before files.	資料夾排在前面	排序时文件夹排前面。
 finder.fullpath	Full path in the Finder title bar.	標題顯示完整路徑	Finder 标题栏显示完整路径。
-finder.no-ds-network	No .DS_Store on network volumes.	網絡卷唔寫 .DS_Store	网络卷不写 .DS_Store。
-finder.no-ds-usb	No .DS_Store on USB volumes.	USB 唔寫 .DS_Store	USB 不写 .DS_Store。
+finder.no-ds-network	No .DS_Store on network volumes.	網絡磁碟不寫入 .DS_Store	网络卷不写 .DS_Store。
+finder.no-ds-usb	No .DS_Store on USB volumes.	USB 磁碟不寫入 .DS_Store	USB 不写 .DS_Store。
 finder.pathbar	Path bar at the bottom of Finder windows.	顯示路徑列	Finder 窗口底部显示路径列。
 finder.statusbar	Status bar with item count and free space.	顯示狀態列	显示项目数和可用空间。
-kbd.full-keyboard-access	Tab reaches every control, not just text fields.	Tab 可以 focus 所有控制項（Linux 式鍵盤操作）	Tab 可以 focus 所有控件，不只是文字框。
+kbd.full-keyboard-access	Tab reaches every control, not just text fields.	Tab 可聚焦所有控制項（Linux 式鍵盤操作）	Tab 可以 focus 所有控件，不只是文字框。
 kbd.no-autocapitalize	No automatic capitalisation at sentence starts.	關自動大寫	关闭自动大写。
 kbd.no-autocorrect	Spelling is not corrected while you type.	關自動拼字修正	关闭自动拼写修正。
-kbd.no-hold-popup	Holding a key repeats it instead of offering accented characters.	關長按彈字（打 code／終端機必需）	长按＝重复字符，不再弹音标候选。
+kbd.no-hold-popup	Holding a key repeats it instead of offering accented characters.	關閉長按選字（編寫程式／終端機必需）	长按＝重复字符，不再弹音标候选。
 kbd.no-smart-dashes	-- stays -- instead of becoming an en dash.	關智能破折號	-- 不会被自动改成破折号。
-kbd.no-smart-quotes	Straight quotes stay straight — no “smart” quotes in code.	關智能引號（打 code 唔會變 “ ”）	直引号保持原样，写代码不会被改成弯引号。
+kbd.no-smart-quotes	Straight quotes stay straight — no “smart” quotes in code.	關閉智能引號（編寫程式不會變成 “ ”）	直引号保持原样，写代码不会被改成弯引号。
 kbd.no-text-completion	No inline predictive text covering what you type.	關行內預測文字	关闭行内预测文字。
-kbd.repeat	Key repeat at the fastest setting.	按鍵重複速度（1=最快）	按键重复速度调到最快。
-kbd.repeat-initial	Shorter delay before a held key starts repeating.	按住幾耐才開始重複	按住键后更快开始重复。
-menubar.hide-fullscreen	No menu bar in full-screen apps.	全螢幕時唔顯示選單列	全屏时不显示菜单栏。
-ptr.linear-mouse	Mouse acceleration off — needs a logout; the tracking slider resets it.	關滑鼠加速（要登出；一拉「追蹤速度」滑桿會重設）	关闭鼠标加速 — 需要注销；一拉追踪速度滑杆就会被重置。
+kbd.repeat	Key repeat at the fastest setting.	按鍵重複速度（1 = 最快）	按键重复速度调到最快。
+kbd.repeat-initial	Shorter delay before a held key starts repeating.	按住多久才開始重複	按住键后更快开始重复。
+menubar.hide-fullscreen	No menu bar in full-screen apps.	全螢幕時不顯示選單列	全屏时不显示菜单栏。
+ptr.linear-mouse	Mouse acceleration off — needs a logout; the tracking slider resets it.	關閉滑鼠加速（需登出；拖動「追蹤速度」滑桿會重設）	关闭鼠标加速 — 需要注销；一拉追踪速度滑杆就会被重置。
 ptr.natural-scroll	Scrolling follows the Linux/Windows direction.	關自然捲動（Linux 方向）	滚动方向跟 Linux／Windows 一致。
 ptr.tap-to-click	Tap the trackpad to click.	觸控板輕點即按	触控板轻点即当左键。
-shot.format	Screenshots saved as PNG.	截圖格式 png	截图保存为 PNG。
-shot.location	Screenshots go to ~/Pictures/Screenshots.	截圖存去固定資料夾	截图统一存到 ~/Pictures/Screenshots。
-shot.no-shadow	Screenshots without the window shadow.	截圖唔要陰影	截图不带窗口阴影。
-shot.no-thumbnail	No floating thumbnail after a screenshot.	截圖後唔彈縮圖	截图后不再弹缩略图。
-spaces.fixed-order	Spaces keep a fixed order instead of re-sorting by recent use.	Space 唔按最近使用重排（固定工作區）	Space 固定顺序，不再按最近使用重排。
-win.corner	Window corner radius — 0.1 is square, 4 Catalina, 9 Sequoia, 16 Tahoe's default.	視窗圓角（0.1=直角，4=Catalina，9=Sequoia，16=Tahoe 預設）	窗口圆角 — 0.1 是直角，4 等于 Catalina，9 等于 Sequoia，16 是 Tahoe 预设。
-win.dblclick-maximize	Double-clicking a title bar maximises instead of minimising.	雙擊標題列 = 放到最大（唔係縮到 Dock）	双击标题栏＝放到最大，不再是缩到 Dock。
-win.no-animations	No open/close window animation — apps appear instantly.	關窗／開窗動畫	关掉开窗／关窗动画，app 即刻出现。
-win.quicklook-instant	Quick Look opens with no zoom animation.	Quick Look 唔要放大動畫	空白键预览不再有放大动画。
+shot.format	Screenshots saved as PNG.	截圖格式 PNG	截图保存为 PNG。
+shot.location	Screenshots go to ~/Pictures/Screenshots.	截圖儲存至固定資料夾	截图统一存到 ~/Pictures/Screenshots。
+shot.no-shadow	Screenshots without the window shadow.	截圖不要陰影	截图不带窗口阴影。
+shot.no-thumbnail	No floating thumbnail after a screenshot.	截圖後不顯示縮圖	截图后不再弹缩略图。
+spaces.fixed-order	Spaces keep a fixed order instead of re-sorting by recent use.	工作區不按最近使用重排（固定順序）	Space 固定顺序，不再按最近使用重排。
+win.corner	Window corner radius — 0.1 is square, 4 Catalina, 9 Sequoia, 16 Tahoe's default.	視窗圓角（0.1 = 直角，4 = Catalina，9 = Sequoia，16 = Tahoe 預設）	窗口圆角 — 0.1 是直角，4 等于 Catalina，9 等于 Sequoia，16 是 Tahoe 预设。
+win.dblclick-maximize	Double-clicking a title bar maximises instead of minimising.	雙擊標題列 = 放到最大（而非縮到 Dock）	双击标题栏＝放到最大，不再是缩到 Dock。
+win.no-animations	No open/close window animation — apps appear instantly.	關閉開窗／關窗動畫	关掉开窗／关窗动画，app 立即出现。
+win.quicklook-instant	Quick Look opens with no zoom animation.	Quick Look 不要放大動畫	空白键预览不再有放大动画。
 win.resize-time	Window resize animation length; 0.001 s feels immediate.	視窗縮放動畫時長	窗口缩放动画时长，0.001 秒等于即时。
 win.save-expanded	Save/Open panels default to the expanded form (type a path).	儲存面板預設展開	保存／打开面板默认用展开版（可以输入路径）。
 win.save-expanded2	Same, for the newer AppKit key.	同上（新版 API）	同上，给新版 AppKit 用。
-win.sidebar-float	Sidebar sits flush with the window edge instead of floating as a card.	側欄貼邊，唔再浮起	侧边栏贴住窗口边，不再浮起成卡片。
+win.sidebar-float	Sidebar sits flush with the window edge instead of floating as a card.	側欄貼邊，不再浮起	侧边栏贴住窗口边，不再浮起成卡片。
 win.sidebar-radius	Corner radius of the glass sidebar (Finder, Mail, Notes).	側欄玻璃圓角	玻璃侧边栏的圆角（Finder、邮件、备忘录）。
 win.tableView-compact	Smaller list rows — more items visible at once.	列表行距收窄	列表行距收窄，一次看到更多项。
-finder.view-style	Finder opens new windows in list view.	Finder 新視窗預設用列表	Finder 新窗口默认用列表
-finder.search-current	Search starts in the current folder, not the whole Mac.	搜尋由目前資料夾開始，唔掃全機	搜索从当前文件夹开始，不扫全机
-finder.ql-select	Select and copy text straight from Quick Look.	快速查看可以選字複製	快速查看可以选字复制
-finder.no-ext-warning	No warning when you change a file extension.	改副檔名唔再彈警告	改扩展名不再弹警告
+finder.view-style	Finder opens new windows in list view.	Finder 新視窗預設使用列表	Finder 新窗口默认用列表
+finder.search-current	Search starts in the current folder, not the whole Mac.	搜尋由目前資料夾開始，不掃描整台電腦	搜索从当前文件夹开始，不扫全机
+finder.ql-select	Select and copy text straight from Quick Look.	快速查看可選取文字並複製	快速查看可以选字复制
+finder.no-ext-warning	No warning when you change a file extension.	修改副檔名不再彈出警告	改扩展名不再弹警告

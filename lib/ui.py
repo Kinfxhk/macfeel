@@ -39,13 +39,13 @@ GROUPS = [
     ("chrome", "Chrome"),
 ]
 GROUP_LABEL = {
-    "Shape": {"en": "Shape and motion", "zh_Hant": "窗口形狀與動畫", "zh_Hans": "窗口形状与动画"},
-    "Keyboard": {"en": "Keyboard and text", "zh_Hant": "鍵盤與輸入", "zh_Hans": "键盘与输入"},
-    "Dock": {"en": "Dock and Spaces", "zh_Hant": "Dock 與 Space", "zh_Hans": "Dock 与 Space"},
-    "Finder": {"en": "Finder", "zh_Hant": "檔案管理", "zh_Hans": "文件管理"},
-    "Screenshots": {"en": "Screenshots", "zh_Hant": "截圖", "zh_Hans": "截图"},
-    "Pointer": {"en": "Mouse and trackpad", "zh_Hant": "滑鼠與觸控板", "zh_Hans": "鼠标与触控板"},
-    "Chrome": {"en": "Menu bar and full screen", "zh_Hant": "選單列與全螢幕", "zh_Hans": "菜单栏与全屏"},
+    "Shape":       {"en": "Shape and motion",              "zh_Hant": "視窗形狀與動畫",  "zh_Hans": "窗口形状与动画"},
+    "Keyboard":    {"en": "Keyboard",                      "zh_Hant": "鍵盤",            "zh_Hans": "键盘"},
+    "Dock":        {"en": "Dock",                          "zh_Hant": "Dock",            "zh_Hans": "Dock"},
+    "Finder":      {"en": "Finder",                        "zh_Hant": "Finder",          "zh_Hans": "Finder"},
+    "Screenshots": {"en": "Screenshots",                   "zh_Hant": "截圖",            "zh_Hans": "截图"},
+    "Pointer":     {"en": "Pointer",                       "zh_Hant": "滑鼠與觸控板",    "zh_Hans": "鼠标与触控板"},
+    "Chrome":      {"en": "Menu bar",                      "zh_Hant": "選單列",          "zh_Hans": "菜单栏"},
 }
 
 
