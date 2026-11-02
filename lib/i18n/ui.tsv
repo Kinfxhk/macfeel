@@ -81,3 +81,6 @@ dialog.accept	Accept and apply	接受並套用	接受并应用
 dialog.cancel	Cancel	取消	取消
 dialog.col.setting	Setting	設定項目	设置项目
 dialog.col.value	Before → After	原本 → 變更後	原本 → 变更后
+theme.auto	Match system	跟隨系統	跟随系统
+theme.light	Light	淺色	浅色
+theme.dark	Dark	深色	深色
