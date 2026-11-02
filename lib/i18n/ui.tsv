@@ -68,3 +68,14 @@ preset.standard	Standard	標準	标准
 preset.standard.note	Light plus appearance: window corners, Dock behaviour, Finder layout, screenshots.	包含輕量項目，並加入外觀：視窗圓角、Dock 行為、Finder 版面、截圖設定。	包含轻量项目，并加入外观：窗口圆角、Dock 行为、Finder 版面、截图设置。
 preset.hardcore	Hardcore	硬核	硬核
 preset.hardcore.note	Everything, including global input behaviour, scroll direction and menu bar.	全部項目，包括全域輸入行為、捲動方向與選單列。	全部项目，包括全局输入行为、滚动方向与菜单栏。
+dialog.title	This will change {count} settings	即將變更 {count} 項設定	即将变更 {count} 项设置
+dialog.dry	Dry run — {count} settings would change	試跑 — 將會變更 {count} 項設定	试跑 — 将会变更 {count} 项设置
+dialog.note	A snapshot is taken before anything is written; RESTORE puts everything back.	寫入前會先建立快照，按「還原」即可回復原狀。	写入前会先建立快照，按「还原」即可恢复原状。
+dialog.none	Nothing to change — already applied.	沒有需要變更的項目，已全部套用。	没有需要变更的项目，已全部应用。
+dialog.close	Close	關閉	关闭
+value.on	On	開啟	开启
+value.off	Off	關閉	关闭
+value.unset	Unset	未設定	未设置
+dialog.confirm	Review the list, then accept to write it. A snapshot is taken first.	請先確認清單，按「接受並套用」才會寫入；寫入前會先建立快照。	请先确认清单，按「接受并应用」才会写入；写入前会先建立快照。
+dialog.accept	Accept and apply	接受並套用	接受并应用
+dialog.cancel	Cancel	取消	取消

@@ -157,6 +157,27 @@ def preset_count(profile, tweaks):
     return sum(1 for tw in tweaks if wanted & set(tw["profiles"]))
 
 
+def compute_changes(profile, lang):
+    """What a preset would change, computed before anything is written."""
+    wanted = set(PRESET_ALIAS.get(profile, profile).split(","))
+    out = []
+    for tw in load_tweaks():
+        if not (wanted & set(tw["profiles"])):
+            continue
+        cur = read_default(tw["domain"], tw["key"])
+        want = expand(tw["value"])
+        if cur is not None and norm(cur) == norm(want):
+            continue
+        out.append({
+            "id": tw["id"],
+            "type": tw["type"],
+            "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
+            "before": cur,
+            "after": want,
+        })
+    return out
+
+
 def load_ranges():
     """id -> {min, max, step} for the numeric tweaks that get a slider."""
     path = ROOT / "lib" / "ranges.conf"
@@ -280,9 +301,13 @@ class Handler(BaseHTTPRequestHandler):
         lang = self._lang(body=body)
         try:
             if self.path == "/api/apply":
-                profile = body.get("profile", "linux")
-                args = ["apply", profile] + (["--dry-run"] if body.get("dry") else [])
-                res = run_cli(args, timeout=180, lang=lang)
+                profile = body.get("profile", "hardcore")
+                changes = compute_changes(profile, lang)
+                if body.get("dry"):
+                    res = {"code": 0, "out": ""}
+                else:
+                    res = run_cli(["apply", profile], timeout=180, lang=lang)
+                res["changes"] = changes
             elif self.path == "/api/restore":
                 res = run_cli(["restore"], timeout=180, lang=lang)
             elif self.path == "/api/set":
