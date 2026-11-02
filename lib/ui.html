@@ -74,7 +74,7 @@
   .wordmark { font: 600 15px/1.1 -apple-system, system-ui, sans-serif; letter-spacing: -.01em; }
   .brand .meta { font-size: 10.5px; }
   .tabs { display: flex; flex-direction: column; gap: 1px; }
-  .tabs button { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  .tabs button { text-transform: none; letter-spacing: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;
                  width: 100%; padding: 7px 9px; border: 0; border-radius: 7px; background: transparent;
                  font: 13px/1.25 -apple-system, system-ui, sans-serif; color: var(--ink);
                  cursor: pointer; text-align: left; }
@@ -137,7 +137,7 @@
   .pv-stage { gap: 26px; }
   .pv-col { width: 41%; max-width: 380px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .pv-win { width: 100%; }
-  .pv-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #5a564d; }
+  .pv-label { font-size: 10px; letter-spacing: .02em; color: #5a564d; }
   .pv-dock { position: static; animation: none; } to { left: calc(100% - 18px); } }
 </style>
 </head>
@@ -165,7 +165,7 @@
 </aside>
 <main>
   <p class="lede" id="lede"></p>
-  <details class="legendbox" title="legend"><summary>? legend</summary><p class="legend" id="legend"></p></details>
+  <details class="legendbox"><summary id="legendbtn">?</summary><p class="legend" id="legend"></p></details>
 <section class="preview" aria-label="preview">
   <div class="pv-head"><b data-ui="ui.preview.title">PREVIEW</b><span id="pv-meta"></span></div>
   <div class="pv-stage">
@@ -265,6 +265,8 @@ function render() {
   document.getElementById("meta").textContent =
     `macOS ${macos} · ${sip.replace("System Integrity Protection status: ", "SIP ")}`;
 
+  const legendBtn = document.getElementById("legendbtn");
+  if (legendBtn) legendBtn.textContent = "? " + ui("ui.legendbtn");
   const langSel = document.getElementById("lang");
   if (langSel.options.length !== langs.length) {
     langSel.innerHTML = langs.map(l => `<option value="${l}">${langLabels[l]}</option>`).join("");
