@@ -190,6 +190,21 @@ def compute_changes(profile, lang):
     return out
 
 
+def load_defaults():
+    """id -> macOS stock value ("-" when the system never sets the key)."""
+    path = ROOT / "lib" / "defaults.conf"
+    out = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            out[parts[0]] = parts[1]
+    return out
+
+
 def load_ranges():
     """id -> {min, max, step} for the numeric tweaks that get a slider."""
     path = ROOT / "lib" / "ranges.conf"
@@ -222,6 +237,9 @@ def load_speed():
     return out
 
 
+DEFAULTS = load_defaults()
+
+
 def state(lang: str = "en"):
     lang = lang if lang in LANGS else "en"
     ranges = load_ranges()
@@ -246,6 +264,7 @@ def state(lang: str = "en"):
             "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
             "note": NOTES.get(tw["id"], {}).get(lang) or NOTES.get(tw["id"], {}).get("en") or "",
             "range": ranges.get(tw["id"]),
+            "default": DEFAULTS.get(tw["id"]),
             "needsLabel": ("" if tw["needs"] in ("-", "") else
                            (UI.get(f"needs.{tw['needs']}", {}).get(lang)
                             or UI.get(f"needs.{tw['needs']}", {}).get("en") or "")),
