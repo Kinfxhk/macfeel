@@ -67,6 +67,7 @@ def load_tsv(path: Path):
 DESC = load_tsv(I18N / "desc.tsv")
 NOTES = load_tsv(I18N / "notes.tsv")
 UI = load_tsv(I18N / "ui.tsv")
+_SNAPSHOT_TAKEN = False
 
 
 def t(key: str, lang: str, **kw) -> str:
@@ -140,6 +141,22 @@ def detect_lang() -> str:
     return "en"
 
 
+def load_ranges():
+    """id -> {min, max, step} for the numeric tweaks that get a slider."""
+    path = ROOT / "lib" / "ranges.conf"
+    out = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 4:
+            continue
+        out[parts[0]] = {"min": parts[1], "max": parts[2], "step": parts[3]}
+    return out
+
+
 def load_speed():
     """level -> {tweak id: value}, straight from lib/speed.conf."""
     path = ROOT / "lib" / "speed.conf"
@@ -158,6 +175,7 @@ def load_speed():
 
 def state(lang: str = "en"):
     lang = lang if lang in LANGS else "en"
+    ranges = load_ranges()
     tweaks = load_tweaks()
     macos = subprocess.run(["sw_vers", "-productVersion"], capture_output=True, text=True).stdout.strip()
     sip = subprocess.run(["csrutil", "status"], capture_output=True, text=True).stdout.strip()
@@ -178,6 +196,7 @@ def state(lang: str = "en"):
             "groupSubtitle": GROUP_LABEL.get(g, {}).get(lang, g),
             "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
             "note": NOTES.get(tw["id"], {}).get(lang) or NOTES.get(tw["id"], {}).get("en") or "",
+            "range": ranges.get(tw["id"]),
             "needsLabel": ("" if tw["needs"] in ("-", "") else
                            (UI.get(f"needs.{tw['needs']}", {}).get(lang)
                             or UI.get(f"needs.{tw['needs']}", {}).get("en") or "")),
@@ -249,6 +268,28 @@ class Handler(BaseHTTPRequestHandler):
                 res = run_cli(args, timeout=180, lang=lang)
             elif self.path == "/api/restore":
                 res = run_cli(["restore"], timeout=180, lang=lang)
+            elif self.path == "/api/set":
+                tid = body.get("id", "")
+                raw = body.get("value", "")
+                rng = load_ranges().get(tid)
+                tw = next((x for x in load_tweaks() if x["id"] == tid), None)
+                if not tw:
+                    self._send(400, json.dumps({"error": "unknown tweak"})); return
+                if not rng:
+                    self._send(400, json.dumps({"error": "not an adjustable tweak"})); return
+                try:
+                    num = float(raw)
+                except (TypeError, ValueError):
+                    self._send(400, json.dumps({"error": "value must be a number"})); return
+                lo, hi = float(rng["min"]), float(rng["max"])
+                if not (lo <= num <= hi):
+                    self._send(400, json.dumps({"error": f"value must be between {lo} and {hi}"})); return
+                global _SNAPSHOT_TAKEN
+                if not _SNAPSHOT_TAKEN:
+                    run_cli(["snapshot"], timeout=60, lang=lang)
+                    _SNAPSHOT_TAKEN = True
+                text = ("%g" % num) if tw["type"] == "float" else str(int(num))
+                res = run_cli(["set", tid, text], timeout=30, lang=lang)
             elif self.path == "/api/toggle":
                 tid = body.get("id", "")
                 tw = next((x for x in load_tweaks() if x["id"] == tid), None)
