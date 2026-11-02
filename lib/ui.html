@@ -84,6 +84,7 @@
   .tabs button.on span { color: var(--accent); }
   .nav-actions { margin-top: auto; display: flex; flex-direction: column; gap: 7px; padding: 0 4px; }
   .nav-actions select { width: 100%; }
+  .preset-note { font-size: 10.5px; line-height: 1.45; color: #7d786d; padding: 0 2px; }
   .rowbtns { display: flex; gap: 5px; }
   .rowbtns button { flex: 1; padding: 7px 6px; font-size: 10.5px; letter-spacing: .06em; }
   main { padding: 24px 30px 44px; max-width: 900px; }
@@ -151,11 +152,8 @@
   <nav id="tabs" class="tabs"></nav>
   <div class="nav-actions">
     <select id="lang" title="Language"></select>
-    <select id="profile" title="preset">
-      <option value="linux">linux &middot; 46</option>
-      <option value="minimal">minimal &middot; 5</option>
-      <option value="chrome">chrome &middot; 4</option>
-    </select>
+    <select id="profile" title="preset"></select>
+    <div class="preset-note" id="preset-note"></div>
     <div class="rowbtns">
       <button id="dry" data-ui="ui.dry">DRY RUN</button>
       <button id="apply" class="primary" data-ui="ui.apply">APPLY</button>
@@ -267,6 +265,16 @@ function render() {
 
   const legendBtn = document.getElementById("legendbtn");
   if (legendBtn) legendBtn.textContent = "? " + ui("ui.legendbtn");
+  const profSel = document.getElementById("profile");
+  if (profSel && Array.isArray(STATE.presets)) {
+    const want = profSel.value || "light";
+    profSel.innerHTML = STATE.presets
+      .map(p => `<option value="${p.id}">${ui("preset." + p.id)} \u00b7 ${p.count}</option>`)
+      .join("");
+    profSel.value = STATE.presets.some(p => p.id === want) ? want : STATE.presets[0].id;
+  }
+  const presetNote = document.getElementById("preset-note");
+  if (presetNote && profSel) presetNote.textContent = ui("preset." + profSel.value + ".note");
   const langSel = document.getElementById("lang");
   if (langSel.options.length !== langs.length) {
     langSel.innerHTML = langs.map(l => `<option value="${l}">${langLabels[l]}</option>`).join("");
@@ -401,6 +409,10 @@ function show(text) {
   o.className = text ? "on" : "";
 }
 
+document.getElementById("profile").onchange = (e) => {
+  const n = document.getElementById("preset-note");
+  if (n) n.textContent = ui("preset." + e.target.value + ".note");
+};
 document.getElementById("apply").onclick = () => apply(false);
 document.getElementById("dry").onclick = () => apply(true);
 document.getElementById("restore").onclick = restore;
