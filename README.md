@@ -70,6 +70,27 @@ macfeel status linux    # current vs wanted, per key
 macfeel apply chrome    # menu bar + Dock out of the way
 ```
 
+## Speed scale · 速度刻度
+
+Most of the animation and typing tweaks are really one dial: how fast the interface feels. `macfeel speed` grades that dial into five levels, so "make it faster" is a number instead of a hunt through seven keys.
+
+| Level | Feel | Window resize | Dock hide | Mission Control | Key repeat |
+|---|---|---|---|---|---|
+| `1` | 瞬速 instant | 0.001 s | 0 s | 0.05 s | ≈15 ms |
+| `2` | 快 fast | 0.05 s | 0.1 s | 0.1 s | ≈15 ms |
+| `3` | 平衡 balanced | 0.1 s | 0.15 s | 0.15 s | ≈30 ms |
+| `4` | 順滑 smooth | 0.15 s | 0.25 s | 0.2 s | ≈60 ms |
+| `5` | 原生 stock | 0.2 s | 0.5 s | 0.25 s | ≈90 ms |
+
+```bash
+macfeel speed              # which level this Mac is at right now
+macfeel speed 2 --dry-run  # show the diff, write nothing
+macfeel speed 2            # snapshot, then write
+```
+
+A level only touches the seven keys it owns, and every write goes through the same snapshot, per-key restore and read-back verification as a profile — so `macfeel restore` still undoes it. Window keys need the app relaunched; Dock keys restart the Dock.
+
+
 ## What it changes (43 keys, all `defaults`-only)
 
 **Shape** — window corner radius (`NSConvolutionOverride1`, `0.1` = square, `4` = Catalina, `16` = Tahoe default), edge-to-edge sidebar, sidebar glass radius, window animations off, resize animation 0.001 s, save panels expanded, compact table rows.
@@ -98,6 +119,7 @@ macfeel apply --dry-run       print what would change, write nothing
 macfeel restore [snapshot]    restore the oldest snapshot (or a named one)
 macfeel ui [--port N]         open the local control panel
 macfeel set <id> [--unset]    write or remove a single tweak
+macfeel speed [1-5]          show or set the 5-level speed scale
 macfeel snapshot              take a snapshot without changing anything
 macfeel doctor                macOS version, SIP status, profile sizes
 macfeel about                 version, licence, coffee

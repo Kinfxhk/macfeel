@@ -43,3 +43,14 @@ cli.status.matched	already match profile '{profile}'	已經同 preset '{profile}
 cli.doctor.sip	SIP	SIP	SIP
 cli.doctor.profiles	profiles	預設組合	预设组合
 cli.doctor.safety	macfeel never asks for Accessibility, never disables SIP, never touches system files.	macfeel 唔會要 Accessibility、唔會關 SIP、唔會改系統檔。	macfeel 不会要 Accessibility、不会关 SIP、不会改系统文件。
+cli.speed.title	Speed scale (1 fastest, 5 macOS default)	速度刻度（1 最快，5 係 macOS 預設）	速度刻度（1 最快，5 为 macOS 默认）
+cli.speed.level1	instant — no animation, 15 ms key repeat	瞬速 — 冇動畫，15ms 重複	瞬速 — 无动画，15ms 重复
+cli.speed.level2	fast — short fades, fastest sane typing	快 — 短過渡，打字最爽	快 — 短过渡，打字最快
+cli.speed.level3	balanced — light animation, normal typing	平衡 — 輕動畫，正常打字	平衡 — 轻动画，正常打字
+cli.speed.level4	smooth — closer to stock, quick key repeat	順滑 — 接近原生，按鍵稍快	顺滑 — 接近原生，按键稍快
+cli.speed.level5	stock — Apple's own timing	原生 — Apple 原本節奏	原生 — Apple 原本节奏
+cli.speed.at	current level: {level}	目前級別：{level}	当前级别：{level}
+cli.speed.custom	current: custom (some keys were set by hand)	目前：自訂（有啲 key 係手動改過）	当前：自定义（有些 key 是手动改过）
+cli.speed.usage	usage: macfeel speed [1-5] [--dry-run]	用法：macfeel speed [1-5] [--dry-run]	用法：macfeel speed [1-5] [--dry-run]
+cli.speed.dry	level {level}: would set {count} keys	級別 {level}：會改 {count} 個 key	级别 {level}：会改 {count} 个 key
+cli.speed.applied	level {level} applied ({count} keys)	已套用級別 {level}（{count} 個 key）	已应用级别 {level}（{count} 个 key）

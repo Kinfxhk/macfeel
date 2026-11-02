@@ -7,6 +7,7 @@
 #   macfeel apply --dry-run       print what would change, write nothing
 #   macfeel restore [snapshot]    restore a snapshot (default: the oldest one)
 #   macfeel set <id> [--unset]    write or remove a single tweak
+#   macfeel speed [1-5]           show or set the speed scale (1 fastest, 5 macOS default)
 #   macfeel ui [--port N]         open the local control panel
 #   macfeel snapshot              take a snapshot without changing anything
 #   macfeel doctor                environment + safety checks
@@ -18,6 +19,7 @@ set -euo pipefail
 VERSION="0.1.0"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TWEAKS="$HERE/lib/tweaks.conf"
+SPEED="$HERE/lib/speed.conf"
 I18N="$HERE/lib/i18n"
 HOME_DIR="${MACFEEL_HOME:-$HOME/.macfeel}"
 SNAP_ROOT="$HOME_DIR/snapshots"
@@ -278,6 +280,101 @@ cmd_set() {  # <id> | <id> --unset
   [ $found -eq 1 ] || die "unknown tweak id: $id"
 }
 
+# ---------------------------------------------------------------------- speed ---
+speed_levels() { awk -F'\t' '$1 !~ /^#/ && NF>=3 {print $1}' "$SPEED" | sort -un; }
+
+speed_value() {  # level id -> value
+  awk -F'\t' -v l="$1" -v i="$2" '$1==l && $2==i {print $3; exit}' "$SPEED"
+}
+
+speed_current() {  # the level whose win.resize-time matches the live value; empty = custom
+  local cur; cur="$(normalise "$(read_value -g NSWindowResizeTime)")"
+  [ -n "$cur" ] || return 0
+  local l v
+  for l in $(speed_levels); do
+    v="$(speed_value "$l" win.resize-time)"
+    [ -n "$v" ] || continue
+    if [ "$cur" = "$(normalise "$v")" ]; then printf '%s' "$l"; return 0; fi
+  done
+}
+
+cmd_speed() {  # [1-5] [--dry-run]
+  local level="" dry=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --dry-run|-n) dry=1 ;;
+      -h|--help)    say "$(t cli.speed.usage)"; return 0 ;;
+      [1-5])        level="$1" ;;
+      *)            die "$(t cli.speed.usage)" ;;
+    esac
+    shift
+  done
+
+  if [ -z "$level" ]; then
+    local match l mark; match="$(speed_current)"
+    say "$(t cli.speed.title)"
+    for l in $(speed_levels); do
+      mark=" "
+      [ "$l" = "$match" ] && mark=">"
+      printf '  %s %s  %s\n' "$mark" "$l" "$(t "cli.speed.level$l")"
+    done
+    if [ -n "$match" ]; then say "$(t cli.speed.at level="$match")"
+    else say "$(t cli.speed.custom)"; fi
+    return 0
+  fi
+
+  local pending; pending="$(mktemp "${TMPDIR:-/tmp}/macfeel.XXXXXX")"
+  trap 'rm -f "$pending"' RETURN
+  local lvl id val row
+  while IFS=$'\t' read -r lvl id val; do
+    [ "$lvl" = "$level" ] || continue
+    row="$(read_tweaks | awk -F'\t' -v i="$id" '$1==i {print; exit}')"
+    [ -n "$row" ] || die "speed.conf references unknown tweak id: $id"
+    printf '%s\t%s\n' "$row" "$val" >> "$pending"
+  done < <(awk -F'\t' '$1 !~ /^#/ && NF>=3' "$SPEED")
+
+  local count; count="$(wc -l < "$pending" | tr -d ' ')"
+  [ "$count" != "0" ] || die "speed.conf has no rows for level $level"
+
+  if [ $dry -eq 1 ]; then
+    local want now
+    say "$(t cli.speed.dry level="$level" count="$count")"
+    while IFS=$'\t' read -r id _ domain key type _ needs _ want; do
+      now="$(read_value "$domain" "$key")"
+      printf '  %-9s %-22s %s: %s -> %s\n' "$(t cli.would)" "$id" "$key" "${now:-unset}" "$want"
+    done < "$pending"
+    return 0
+  fi
+
+  local snap; snap="$(take_snapshot)"
+  say "$(t cli.snapshot): $snap"
+  local changed=0 hints=" " relaunch="" want2
+  while IFS=$'\t' read -r id _ domain key type _ needs _ want2; do
+    write_value "$domain" "$key" "$type" "$want2"
+    local got; got="$(read_value "$domain" "$key")"
+    if [ "$(normalise "$got")" = "$(normalise "$(expand_tilde "$want2")")" ]; then
+      printf '  %-9s %-22s %s=%s\n' "$(t cli.set)" "$id" "$key" "$want2"
+    else
+      printf '  %-9s %-22s %s=%s (reads %s)\n' "$(t cli.failed)" "$id" "$key" "$want2" "$got" >&2
+    fi
+    changed=$((changed + 1))
+    case "$needs" in
+      dock)     hints="$hints dock" ;;
+      relaunch) relaunch="$relaunch $id" ;;
+    esac
+  done < "$pending"
+
+  say ""
+  say "$(t cli.speed.applied level="$level" count="$changed")"
+  case "$hints" in *" dock"*) killall Dock 2>/dev/null || true; note "$(t cli.dock)" ;; esac
+  if [ -n "$relaunch" ]; then
+    say ""
+    say "$(t cli.needs.title)"
+    note "$(t cli.needs.relaunch):$relaunch"
+  fi
+  note "$(t cli.restore-hint)"
+}
+
 cmd_doctor() {
   say "macfeel $VERSION · lang $LANG_CODE"
   say "macOS:      $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
@@ -307,6 +404,7 @@ case "$cmd" in
   apply)    cmd_apply "$@" ;;
   restore)  cmd_restore "$@" ;;
   set)      cmd_set "$@" ;;
+  speed)    cmd_speed "$@" ;;
   snapshot) take_snapshot ;;
   ui)       exec python3 "$HERE/lib/ui.py" --lang "$LANG_CODE" "$@" ;;
   doctor)   cmd_doctor ;;
