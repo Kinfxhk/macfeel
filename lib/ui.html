@@ -62,6 +62,52 @@
   a { color: var(--accent); }
 
 
+
+
+  /* ---- app shell: vertical tabs ---- */
+  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+  .nav { background: #f2efe8; border-right: 1px solid var(--rule); padding: 20px 12px 16px;
+         display: flex; flex-direction: column; gap: 16px; position: sticky; top: 0; height: 100vh; }
+  .brand { display: flex; flex-direction: column; gap: 3px; padding: 0 8px; }
+  .wordmark { font: 600 15px/1.1 -apple-system, system-ui, sans-serif; letter-spacing: -.01em; }
+  .brand .meta { font-size: 10.5px; }
+  .tabs { display: flex; flex-direction: column; gap: 1px; }
+  .tabs button { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+                 width: 100%; padding: 7px 9px; border: 0; border-radius: 7px; background: transparent;
+                 font: 13px/1.25 -apple-system, system-ui, sans-serif; color: var(--ink);
+                 cursor: pointer; text-align: left; }
+  .tabs button span { font: 11px ui-monospace, Menlo, monospace; color: #9a958a; }
+  .tabs button:hover { background: rgba(255,255,255,.6); }
+  .tabs button.on { background: #fff; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.07); }
+  .tabs button.on span { color: var(--accent); }
+  .nav-actions { margin-top: auto; display: flex; flex-direction: column; gap: 7px; padding: 0 4px; }
+  .nav-actions select { width: 100%; }
+  .rowbtns { display: flex; gap: 5px; }
+  .rowbtns button { flex: 1; padding: 7px 6px; font-size: 10.5px; letter-spacing: .06em; }
+  main { padding: 24px 30px 44px; max-width: 900px; }
+  @media (max-width: 720px) {
+    .shell { grid-template-columns: 1fr; }
+    .nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); }
+    .tabs { flex-direction: row; flex-wrap: wrap; }
+    .nav-actions { margin-top: 0; }
+  }
+  /* ---- row: one line, details behind the ⓘ ---- */
+  .row { align-items: center; }
+  .line { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info { width: 18px; height: 18px; flex: 0 0 auto; border-radius: 50%; border: 1px solid #cfcac0;
+          background: transparent; color: #8a867c; font: 700 11px/1 ui-monospace, Menlo, monospace;
+          display: grid; place-items: center; cursor: pointer; padding: 0; transition: .15s; }
+  .info:hover { border-color: #8a1c1c; color: #8a1c1c; }
+  .info[aria-expanded="true"] { background: #8a1c1c; border-color: #8a1c1c; color: #fbfbf9; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #c9c4ba; flex: 0 0 auto; }
+  .dot.sync { background: #2f6b4f; } .dot.drift { background: #b58900; } .dot.unset { background: #c9c4ba; }
+  .detail { margin: 8px 0 2px 27px; font-size: 12.5px; line-height: 1.55; color: #5a564d; }
+  .detail .key { margin-top: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #8d887c; }
+  details.legendbox { margin: 0 0 14px; }
+  details.legendbox > summary { cursor: pointer; font-size: 11px; letter-spacing: .1em; color: #8a867c; list-style: none; }
+  details.legendbox > summary::-webkit-details-marker { display: none; }
+  details.legendbox > summary:hover { color: #8a1c1c; }
   /* ---- adjustable numeric rows ---- */
   .slider { width: 100%; margin: 2px 0 4px; accent-color: #8a1c1c; height: 18px; }
   .slabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -99,29 +145,30 @@
 </style>
 </head>
 <body>
-<header>
-  <div class="top">
-    <h1>MACFEEL</h1>
-    <div class="meta" id="meta">…</div>
-    <div class="spacer"></div>
-    <div class="actions">
-      <select id="lang" title="Language"></select>
-      <span class="meta" data-ui="ui.preset">PRESET</span>
-      <select id="profile">
-        <option value="linux">linux — 43</option>
-        <option value="minimal">minimal — 5</option>
-        <option value="chrome">chrome — 4</option>
-      </select>
+<div class="shell">
+<aside class="nav">
+  <div class="brand">
+    <span class="wordmark">macfeel</span>
+    <span class="meta" id="meta">&hellip;</span>
+  </div>
+  <nav id="tabs" class="tabs"></nav>
+  <div class="nav-actions">
+    <select id="lang" title="Language"></select>
+    <select id="profile" title="preset">
+      <option value="linux">linux &middot; 46</option>
+      <option value="minimal">minimal &middot; 5</option>
+      <option value="chrome">chrome &middot; 4</option>
+    </select>
+    <div class="rowbtns">
       <button id="dry" data-ui="ui.dry">DRY RUN</button>
       <button id="apply" class="primary" data-ui="ui.apply">APPLY</button>
-      <button id="restore" data-ui="ui.restore">↩ RESTORE</button>
+      <button id="restore" data-ui="ui.restore" title="restore">&#8617;</button>
     </div>
   </div>
-  <nav id="tabs"></nav>
-</header>
+</aside>
 <main>
   <p class="lede" id="lede"></p>
-  <p class="legend" id="legend"></p>
+  <details class="legendbox"><summary>?</summary><p class="legend" id="legend"></p></details>
 <section class="preview" aria-label="preview">
   <div class="pv-head"><b data-ui="ui.preview.title">PREVIEW</b><span id="pv-meta"></span></div>
   <div class="pv-stage">
@@ -264,11 +311,32 @@ function render() {
     const row = document.createElement("div");
     row.className = "row";
     const label = {sync: ui("ui.in-sync"), drift: ui("ui.drift"), unset: ui("ui.unset")}[t.state];
+    // A row shows a label, not a paragraph: cut the sentence at its natural seam
+    // and keep the whole description one click away behind the (i).
+    const splitLabel = (text) => {
+      const s = String(text || "").trim();
+      const dash = s.indexOf(" — ");
+      if (dash > 0 && dash <= 64) return [s.slice(0, dash), s.slice(dash + 3)];
+      const stop = s.search(/\.\s|。|\uFF0E/);
+      if (stop > 0 && stop <= 64) return [s.slice(0, stop), s.slice(stop + 1).trim()];
+      if (s.length <= 40) return [s, ""];
+      const cut = s.lastIndexOf(" ", 40);
+      const at = cut > 20 ? cut : 40;
+      return [s.slice(0, at).trim(), s.slice(at).trim()];
+    };
+    const [shortDesc, extraDesc] = splitLabel(t.desc);
     row.innerHTML = `
-      <div>
-        <div class="name">${t.desc}</div>
-        <div class="note">${t.note || ""}</div>
-        <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}${t.needsLabel ? `<span class="tag">${t.needsLabel}</span>` : ""}</div>
+      <div class="main">
+        <div class="line">
+          <button class="info" aria-expanded="false" aria-label="${ui("ui.details")}" title="${ui("ui.details")}">!</button>
+          <span class="name">${shortDesc}</span>
+          <span class="dot ${t.state}" title="${label}"></span>
+        </div>
+        <div class="detail" hidden>
+          <div class="note full">${t.desc}</div>
+          ${t.note ? `<div class="note">${t.note}</div>` : ""}
+          <div class="key">${t.domain} ${t.key} = ${t.want}${t.current !== null ? ` · now: ${t.current}` : ""}${t.needsLabel ? `<span class="tag">${t.needsLabel}</span>` : ""}</div>
+        </div>
       </div>
       <div class="side">
         ${t.range ? `
@@ -277,15 +345,19 @@ function render() {
                value="${t.current !== null && t.current !== "" ? t.current : t.want}">
         <div class="slabel">
           <b data-role="cur">${t.current !== null && t.current !== "" ? t.current : "—"}</b>
-          <span class="badge ${t.state}">${label}</span>
         </div>` : `
         <div class="swrow">
-          <span class="state-label ${t.state === "sync" ? "on" : ""}">${t.state === "sync" ? "ON" : "OFF"}</span>
           <button class="switch" role="switch" aria-checked="${t.state === "sync"}" data-id="${t.id}"
                   aria-label="${t.desc}" title="${t.state === "sync" ? ui("ui.revert") : ui("ui.apply")}"><span></span></button>
-        </div>
-        <span class="badge ${t.state}">${label}</span>`}
+        </div>`}
       </div>`;
+    const info = row.querySelector(".info");
+    info.onclick = () => {
+      const d = row.querySelector(".detail");
+      const opening = d.hasAttribute("hidden");
+      if (opening) d.removeAttribute("hidden"); else d.setAttribute("hidden", "");
+      info.setAttribute("aria-expanded", String(opening));
+    };
     const sw = row.querySelector(".switch");
     if (sw) sw.onclick = () => toggle(t.id);
     const sl = row.querySelector(".slider");

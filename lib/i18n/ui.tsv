@@ -56,3 +56,4 @@ cli.speed.dry	level {level}: would set {count} keys	級別 {level}：會改 {cou
 cli.speed.applied	level {level} applied ({count} keys)	已套用級別 {level}（{count} 個 key）	已应用级别 {level}（{count} 个 key）
 ui.preview.title	PREVIEW — what these settings look like	前後對比 — 改咗之後係咩樣	前后对比 — 改了之后是什么样
 ui.preview.caption	Simulated, driven by your live values	按你目前設定模擬，唔係截圖	按你当前设置模拟，不是截图
+ui.details	Details	說明	说明
