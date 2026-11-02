@@ -12,7 +12,6 @@ finder.folders-first	Folders sort before files.	資料夾排先	排序时文件�
 finder.fullpath	Full path in the Finder title bar.	標題顯示完整路徑	Finder 标题栏显示完整路径。
 finder.no-ds-network	No .DS_Store on network volumes.	網絡卷唔寫 .DS_Store	网络卷不写 .DS_Store。
 finder.no-ds-usb	No .DS_Store on USB volumes.	USB 唔寫 .DS_Store	USB 不写 .DS_Store。
-finder.no-ext-warning	No warning when changing a file extension.	改副檔名唔再問	改扩展名不再弹警告。
 finder.pathbar	Path bar at the bottom of Finder windows.	顯示路徑列	Finder 窗口底部显示路径列。
 finder.statusbar	Status bar with item count and free space.	顯示狀態列	显示项目数和可用空间。
 kbd.full-keyboard-access	Tab reaches every control, not just text fields.	Tab 可以 focus 所有控制項（Linux 式鍵盤操作）	Tab 可以 focus 所有控件，不只是文字框。
@@ -43,3 +42,7 @@ win.save-expanded2	Same, for the newer AppKit key.	同上（新版 API）	同上
 win.sidebar-float	Sidebar sits flush with the window edge instead of floating as a card.	側欄貼邊，唔再浮起	侧边栏贴住窗口边，不再浮起成卡片。
 win.sidebar-radius	Corner radius of the glass sidebar (Finder, Mail, Notes).	側欄玻璃圓角	玻璃侧边栏的圆角（Finder、邮件、备忘录）。
 win.tableView-compact	Smaller list rows — more items visible at once.	列表行距收窄	列表行距收窄，一次看到更多项。
+finder.view-style	Finder opens new windows in list view.	Finder 新視窗預設用列表	Finder 新窗口默认用列表
+finder.search-current	Search starts in the current folder, not the whole Mac.	搜尋由目前資料夾開始，唔掃全機	搜索从当前文件夹开始，不扫全机
+finder.ql-select	Select and copy text straight from Quick Look.	快速查看可以選字複製	快速查看可以选字复制
+finder.no-ext-warning	No warning when you change a file extension.	改副檔名唔再彈警告	改扩展名不再弹警告

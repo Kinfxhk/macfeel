@@ -7,7 +7,7 @@ macOS is a good Unix with a UI that fights you: 16 pt window corners, animations
 ```bash
 git clone https://github.com/Kinfxhk/macfeel.git && cd macfeel
 ./install.sh
-macfeel apply linux --dry-run   # see the 43 changes
+macfeel apply linux --dry-run   # see the 46 changes
 macfeel apply linux             # snapshot first, then write
 macfeel restore                 # back to exactly how it was
 ```
@@ -60,7 +60,7 @@ The internet already has 50-line `defaults write` gists. They have two problems:
 
 | Profile | What it is for | Tweaks |
 |---|---|---|
-| `linux` (default) | the full "stop wasting my time" set | 43 |
+| `linux` (default) | the full "stop wasting my time" set | 46 |
 | `minimal` | just shape and speed: square corners, no animations, fast key repeat | 5 |
 | `chrome` | hides the menu bar and the Dock on top of `linux` | 4 |
 
@@ -99,7 +99,7 @@ A level only touches the seven keys it owns, and every write goes through the sa
 
 **Dock** — auto-hide with zero delay, 0.15 s animation, `scale` minimise, no recent apps, no launch bounce, faster Mission Control, Spaces stay in a fixed order instead of re-sorting by recent use.
 
-**Finder** — extensions, path bar, status bar, full path in title, folders first, no extension-change warning, no `.DS_Store` on network or USB volumes.
+**Finder** — extensions, path bar, status bar, full path in title, list view by default, folders first, search starts in the current folder, Quick Look text is selectable, no extension-change warning, no `.DS_Store` on network or USB volumes.
 
 **Screenshots** — no shadow, PNG, saved to `~/Pictures/Screenshots`, no floating thumbnail.
 

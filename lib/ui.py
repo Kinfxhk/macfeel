@@ -140,6 +140,22 @@ def detect_lang() -> str:
     return "en"
 
 
+def load_speed():
+    """level -> {tweak id: value}, straight from lib/speed.conf."""
+    path = ROOT / "lib" / "speed.conf"
+    out = {}
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        out.setdefault(parts[0], {})[parts[1]] = parts[2]
+    return out
+
+
 def state(lang: str = "en"):
     lang = lang if lang in LANGS else "en"
     tweaks = load_tweaks()
@@ -177,7 +193,7 @@ def state(lang: str = "en"):
         "macos": macos, "sip": sip, "lang": lang, "langs": LANGS,
         "langLabels": LANG_LABEL,
         "ui": {k: (v.get(lang) or v.get("en")) for k, v in UI.items()},
-        "items": items, "groups": groups,
+        "items": items, "groups": groups, "speed": load_speed(),
     }
 
 
