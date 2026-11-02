@@ -141,6 +141,15 @@ def detect_lang() -> str:
     return "en"
 
 
+UNITS = {
+    "win.corner": "pt", "win.sidebar-radius": "pt",
+    "win.resize-time": "s", "dock.autohide-delay": "s",
+    "dock.autohide-time": "s", "dock.expose-speed": "s",
+}
+VALUE_LABELS = {
+    "SCcf": {"en": "current folder", "zh_Hant": "目前資料夾", "zh_Hans": "当前文件夹"},
+    "Nlsv": {"en": "list view", "zh_Hant": "列表檢視", "zh_Hans": "列表视图"},
+}
 PRESET_ALIAS = {
     "light": "light",
     "standard": "standard,light",
@@ -174,6 +183,9 @@ def compute_changes(profile, lang):
             "desc": DESC.get(tw["id"], {}).get(lang) or DESC.get(tw["id"], {}).get("en") or tw["desc"],
             "before": cur,
             "after": want,
+            "unit": UNITS.get(tw["id"], ""),
+            "before_label": VALUE_LABELS.get(cur, {}).get(lang, "") if cur else "",
+            "after_label": VALUE_LABELS.get(want, {}).get(lang, "") if want else "",
         })
     return out
 

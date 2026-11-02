@@ -75,6 +75,7 @@
   .modal h2 { margin: 0 0 4px; font-size: 15px; }
   .modal-sub { margin: 0 0 12px; font-size: 12px; color: #6d685e; }
   #modal-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; border-top: 1px solid var(--rule); }
+  #modal-list li.head { font-size: 10.5px; letter-spacing: .08em; color: #8d887c; border-bottom: 1px solid var(--rule); }
   #modal-list li { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 12.5px; }
   #modal-list .chg-val { font: 12px ui-monospace, Menlo, monospace; white-space: nowrap; }
   #modal-list .old { color: #9a9488; }
@@ -417,10 +418,13 @@ async function toggle(id) {
   STATE = r.state; render(); show(r.out || "");
 }
 
-function fmtValue(v, type) {
+function fmtValue(v, type, unit, label) {
   if (v === null || v === undefined || v === "") return ui("value.unset");
   if (type === "bool") return (v === true || v === "1" || v === 1 || v === "true") ? ui("value.on") : ui("value.off");
-  return String(v);
+  let out = String(v);
+  if (unit) out += " " + unit;
+  if (label) out += "（" + label + "）";
+  return out;
 }
 
 let pendingApply = null;
@@ -433,10 +437,11 @@ function showChanges(changes, opts) {
     (dry ? ui("dialog.dry") : ui("dialog.title")).replace("{count}", changes.length);
   document.getElementById("modal-sub").textContent =
     (dry || !changes.length) ? ui("dialog.note") : ui("dialog.confirm");
-  list.innerHTML = changes.length
+  list.innerHTML = changes.length ? `<li class="head"><span>${ui("dialog.col.setting")}</span><span>${ui("dialog.col.value")}</span></li>` : "" ;
+  list.innerHTML += changes.length
     ? changes.map(c => `<li><span class="chg-name">${c.desc}</span>
-        <span class="chg-val"><span class="old">${fmtValue(c.before, c.type)}</span>
-        <span class="arrow">\u2192</span><span class="new">${fmtValue(c.after, c.type)}</span></span></li>`).join("")
+        <span class="chg-val"><span class="old">${fmtValue(c.before, c.type, c.unit, c.before_label)}</span>
+        <span class="arrow">\u2192</span><span class="new">${fmtValue(c.after, c.type, c.unit, c.after_label)}</span></span></li>`).join("")
     : `<li><span class="chg-name">${ui("dialog.none")}</span></li>`;
   document.getElementById("modal-cancel").textContent = ui("dialog.cancel");
   const accept = document.getElementById("modal-accept");

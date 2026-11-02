@@ -79,3 +79,5 @@ value.unset	Unset	未設定	未设置
 dialog.confirm	Review the list, then accept to write it. A snapshot is taken first.	請先確認清單，按「接受並套用」才會寫入；寫入前會先建立快照。	请先确认清单，按「接受并应用」才会写入；写入前会先建立快照。
 dialog.accept	Accept and apply	接受並套用	接受并应用
 dialog.cancel	Cancel	取消	取消
+dialog.col.setting	Setting	設定項目	设置项目
+dialog.col.value	Before → After	原本 → 變更後	原本 → 变更后
