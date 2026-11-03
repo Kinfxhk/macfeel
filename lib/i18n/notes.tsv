@@ -14,7 +14,10 @@ finder.no-ds-network	Keeps SMB/NFS shares clean for other machines.	網絡卷（
 finder.no-ds-usb	Keeps USB sticks clean when you plug them into Linux or Windows.	USB／外接碟不寫 .DS_Store。	USB 插到 Linux／Windows 上不会多出 .DS_Store。
 finder.no-ext-warning	You know what you are doing when you rename a file.	修改副檔名不再彈出警告（你知道自己在做什麼）。	改扩展名是你自己决定的，不用每次确认。
 finder.pathbar	Shows where you are in the tree, and lets you jump up quickly.	Finder 視窗底部顯示路徑列，一眼看到檔案在邊。	显示你在目录树的哪一层，方便往上跳。
+finder.ql-select	Select and copy text straight from a Quick Look preview, without opening the file.	快速查看可以直接選取文字並複製，不用先打開檔案。	快速查看可以直接选中文字并复制，不用先打开文件。
+finder.search-current	Search starts in the folder you have open, instead of scanning the whole Mac.	搜尋由目前資料夾開始，不掃描整台電腦。	搜索从当前文件夹开始，不扫整台电脑。
 finder.statusbar	Item count and free space for the current folder.	Finder 視窗底部顯示「N 個項目，可用 xx GB」。	当前文件夹的项目数和可用空间。
+finder.view-style	New Finder windows open in list view, so names, dates and sizes show without switching from icons.	Finder 新視窗預設使用列表檢視，檔名、日期和大小不用再從圖示切換。	Finder 新窗口默认用列表视图，文件名、日期和大小不用再从图标切换。
 kbd.full-keyboard-access	Without this, Tab only moves between text fields and you cannot reach buttons from the keyboard.	Tab 可以 focus 所有控制項（按鈕、剔選框、下拉），不止文字框。純鍵盤操作 app 的必要條件。	不开的话 Tab 只在文字框之间跳，键盘去不到按钮。
 kbd.no-autocapitalize	No capital after a full stop or a new line.	關自動大寫。句首、換行後不會自動變大楷。	句号或换行后不再自动大写。
 kbd.no-autocorrect	No silent word replacement while typing.	關自動拼字修正，打字不會無啦啦被換字。	打字时不会静静换掉你的字。
