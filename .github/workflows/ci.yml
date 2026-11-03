@@ -74,8 +74,13 @@ jobs:
           set -e
           ./bin/macfeel apply minimal
           test "$(defaults read -g KeyRepeat)" = "1"
-          test "$(defaults read -g NSConvolutionOverride1 | awk '{printf "%.1f", $1}')" = "0.1"
-          ./bin/macfeel status minimal | tail -1 | grep -q "5/5"
+          # minimal aliases light. win.corner (NSConvolutionOverride1) is standard only,
+          # so this preset must not write it. The runner image does not have the key.
+          if defaults read -g NSConvolutionOverride1 >/dev/null 2>&1; then
+            echo "minimal wrote NSConvolutionOverride1"; exit 1
+          fi
+          n=$(awk -F'\t' 'NF==8 && $1 !~ /^#/ && $2 ~ /(^|,)light(,|$)/ {c++} END {print c+0}' lib/tweaks.conf)
+          ./bin/macfeel status minimal | tail -1 | grep -q "$n/$n"
           ./bin/macfeel restore
           # the runner had no KeyRepeat before, so restore must remove it
           if defaults read -g KeyRepeat >/dev/null 2>&1; then
