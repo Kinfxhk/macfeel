@@ -175,7 +175,7 @@ rm -rf ~/dev/macfeel ~/.macfeel
 
 ## 中文簡介
 
-macOS 嘅 UI 同 Unix 底子唔夾：圓角、動畫、滑鼠加速、Dock 長駐。`macfeel` 用一個無依賴 CLI 把呢啲全部關掉，而且**每一步都可以還原**：每次 apply 之前自動 snapshot，`restore` 只會還原 macfeel 自己改過嘅 key，唔會拖累其他 app 嘅設定。全程唔需要 Accessibility 權限、唔需要關 SIP、唔會裝任何驅動。
+macOS 的 UI 與 Unix 底子並不協調：圓角、動畫、滑鼠加速、Dock 長駐。`macfeel` 用一個無依賴 CLI 把這些全部關閉，而且**每一步都可以還原**：每次 apply 之前自動 snapshot，`restore` 只會還原 macfeel 自己改過的 key，不會拖累其他 app 的設定。全程不需要 Accessibility 權限、不需要關閉 SIP、不會安裝任何驅動。
 
 ## License
 
