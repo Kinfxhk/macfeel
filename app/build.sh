@@ -42,28 +42,11 @@ cp ../lib/tweaks.conf ../lib/defaults.conf ../lib/ranges.conf ../lib/notes.conf 
 cp ../lib/i18n/ui.tsv "$APP/Contents/Resources/"
 
 echo "== bundle =="
-cat > "$APP/Contents/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CFBundleName</key><string>macfeel</string>
-	<key>CFBundleDisplayName</key><string>macfeel</string>
-	<key>CFBundleExecutable</key><string>macfeel</string>
-	<key>CFBundleIdentifier</key><string>com.kinfxhk.macfeel</string>
-	<key>CFBundleIconFile</key><string>AppIcon</string>
-	<key>CFBundlePackageType</key><string>APPL</string>
-	<key>CFBundleShortVersionString</key><string>1.0.0</string>
-	<key>CFBundleVersion</key><string>1</string>
-	<key>LSMinimumSystemVersion</key><string>14.0</string>
-	<key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
-	<key>NSHumanReadableCopyright</key><string>MIT licence · github.com/Kinfxhk/macfeel</string>
-	<key>NSPrincipalClass</key><string>NSApplication</string>
-	<key>NSSupportsAutomaticTermination</key><false/>
-	<key>NSSupportsSuddenTermination</key><false/>
-</dict>
-</plist>
-PLIST
+# One Info.plist for both build paths (Xcode substitutes the same variables).
+sed -e "s/\$(MARKETING_VERSION)/1.0.0/" \
+    -e "s/\$(CURRENT_PROJECT_VERSION)/1/" \
+    -e "s/\$(MACOSX_DEPLOYMENT_TARGET)/14.0/" \
+    Info.plist > "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 if [ -f Assets/AppIcon.icns ]; then cp Assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"; fi
 
