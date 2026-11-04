@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macfeel — 隱私政策 / Privacy Policy</title>
+<style>
+  :root { --paper:#f7f4ef; --ink:#2a2622; --muted:#6e665c; --rule:#ded7cc; --accent:#c4663a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#1e1b22; --ink:#ece7e1; --muted:#9c93a6; --rule:#3a3446; --accent:#e0895f; }
+  }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font: 16px/1.65 -apple-system, "Helvetica Neue", "PingFang HK", sans-serif; }
+  main { max-width: 40rem; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  h1 { font-size: 1.9rem; letter-spacing: -0.01em; margin: 0 0 .25rem; }
+  .kicker { font: 600 11px/1 ui-monospace, SFMono-Regular, monospace; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+  h2 { font-size: 1rem; margin: 2.2rem 0 .4rem; letter-spacing: .01em; }
+  p, li { color: var(--ink); }
+  .lede { font-size: 1.05rem; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
+  code { font: 13px/ui-monospace, SFMono-Regular, monospace; background: var(--rule); padding: .1em .35em; border-radius: 4px; }
+  .meta { color: var(--muted); font-size: .85rem; }
+  ul { padding-left: 1.1rem; }
+  .en { color: var(--muted); font-size: .92rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">macfeel · privacy</div>
+  <h1>隱私政策</h1>
+  <p class="meta">最後更新：2026 年 11 月 4 日</p>
+
+  <p class="lede">macfeel 不收集、不傳送、不儲存任何個人資料。它沒有網絡功能。</p>
+
+  <h2>我們收集什麼</h2>
+  <p>沒有。macfeel 不含帳號系統、不含分析工具、不含廣告、不含第三方 SDK，也不會發出任何網絡請求。</p>
+
+  <h2>app 在你的 Mac 上寫入什麼</h2>
+  <ul>
+    <li>你按下「套用」或「套用此項」時，macfeel 會把你選擇的值寫入 macOS 的偏好設定檔
+        （<code>~/Library/Preferences</code> 內的 <code>com.apple.dock</code>、<code>com.apple.finder</code>、
+        <code>com.apple.screencapture</code>、<code>com.apple.AppleMultitouchTrackpad</code> 及全域設定）。
+        這些檔案留在你的電腦上，不會離開你的電腦。</li>
+    <li>套用前，macfeel 會在 <code>~/Library/Application Support/macfeel/snapshots/</code> 建立一個快照，
+        方便你日後還原。快照只包含偏好設定的值，不包含任何個人內容。</li>
+    <li>移除 app 之後，上述檔案仍在你電腦上，可自行刪除。</li>
+  </ul>
+
+  <h2>權限</h2>
+  <p>macfeel 不需要「輔助使用」（Accessibility）權限，不會修改系統完整性保護（SIP），也不會安裝核心擴充。</p>
+
+  <h2>兒童</h2>
+  <p>本 app 不收集任何資料，因此亦不涉及兒童資料。</p>
+
+  <h2>政策變更</h2>
+  <p>若這份政策有變，本頁會更新日期；重大變更會在 app 的發行說明中註明。</p>
+
+  <h2>聯絡</h2>
+  <p>問題或錯誤回報：<a href="https://github.com/Kinfxhk/macfeel/issues">github.com/Kinfxhk/macfeel/issues</a>。
+     電郵：<a href="mailto:178037814+Kinfxhk@users.noreply.github.com">178037814+Kinfxhk@users.noreply.github.com</a>。</p>
+
+  <hr>
+
+  <h2 class="en">English summary</h2>
+  <p class="en">macfeel collects nothing and sends nothing. It has no networking code, no analytics, no ads
+  and no third-party SDKs. When you press Apply it writes the settings you chose into your own macOS
+  preference files under <code>~/Library/Preferences</code>, and it saves a snapshot under
+  <code>~/Library/Application Support/macfeel/</code> so you can undo. Both stay on your Mac. It needs no
+  Accessibility permission and does not change SIP. Questions:
+  <a href="https://github.com/Kinfxhk/macfeel/issues">GitHub issues</a> or
+  <a href="mailto:178037814+Kinfxhk@users.noreply.github.com">178037814+Kinfxhk@users.noreply.github.com</a>.</p>
+
+  <p class="meta"><a href="./index.html">← macfeel</a> · <a href="./support.html">支援</a> · MIT licence</p>
+</main>
+</body>
+</html>

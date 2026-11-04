@@ -166,6 +166,30 @@ Everything else is live the moment `apply` returns.
 
 macfeel is deliberately the *preferences* layer. It is the part that needs no trust.
 
+## Native app (`app/`)
+
+`app/` is a SwiftUI front end over the same `lib/*.conf` tables, so the CLI and the app cannot
+disagree about which key a row writes or what macOS stock value it has.
+
+```bash
+cd app
+./build.sh            # build/macfeel.app — ad-hoc signed, unsandboxed (full behaviour)
+./build.sh --test     # engine self-test + preset plan; writes only to a scratch domain
+./build.sh --run      # build and launch
+./build.sh --sandbox  # Mac App Store variant: App Sandbox + preference exception
+```
+
+Headless modes: `--selftest` (round-trips every value type, snapshot and restore), `--dump`
+(current value of every row) and `--plan <light|standard|hardcore>` (what a preset would change,
+nothing written).
+
+The sandbox variant is only functional with the entitlement list measured in
+[docs/mas-sandbox-findings.md](docs/mas-sandbox-findings.md). Without it a sandboxed build writes
+into its own container, reads the value back happily and changes nothing on the system.
+
+Privacy policy and support pages: <https://kinfxhk.github.io/macfeel/privacy.html> ·
+<https://kinfxhk.github.io/macfeel/support.html>
+
 ## Uninstall
 
 ```bash
