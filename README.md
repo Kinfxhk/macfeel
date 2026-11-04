@@ -190,6 +190,19 @@ into its own container, reads the value back happily and changes nothing on the 
 Privacy policy and support pages: <https://kinfxhk.github.io/macfeel/privacy.html> ·
 <https://kinfxhk.github.io/macfeel/support.html>
 
+### Release
+
+```bash
+xcodegen generate                                  # app/macfeel.xcodeproj from project.yml
+TEAM_ID=XXXXXXXXXX ./scripts/release.sh            # archive + upload to TestFlight
+```
+
+`scripts/release.sh` runs `xcodebuild archive` and `-exportArchive` with
+`destination: upload`; pass `ASC_KEY_PATH` / `ASC_KEY_ID` / `ASC_ISSUER_ID` to
+authenticate with an App Store Connect API key instead of Xcode's account.
+Store copy lives in `app/store/listing-zh-Hant.md`, screenshots are 1280×800 in
+`app/store/`, regenerated with `Assets/make-shots.swift`.
+
 ## Uninstall
 
 ```bash
