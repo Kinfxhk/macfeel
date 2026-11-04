@@ -1,0 +1,69 @@
+# XcodeGen spec — generates macfeel.xcodeproj for `xcodebuild archive` and the
+# App Store / TestFlight pipeline. build.sh still works without Xcode.
+#
+#   xcodegen generate            # rewrite macfeel.xcodeproj from this file
+#   xcodebuild -project macfeel.xcodeproj -scheme macfeel -showdestinations
+
+name: macfeel
+
+options:
+  bundleIdPrefix: com.kinfxhk
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: zh-Hant
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    DEAD_CODE_STRIPPING: YES
+
+targets:
+  macfeel:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+      - path: Assets/AppIcon.icns
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_NAME: macfeel
+        PRODUCT_BUNDLE_IDENTIFIER: com.kinfxhk.macfeel
+        INFOPLIST_FILE: Info.plist
+        # The App Sandbox build is the one that ships to the Mac App Store.
+        # Remove this line for a Developer ID build (full behaviour: `defaults` CLI
+        # plus restarting Dock/Finder).
+        CODE_SIGN_ENTITLEMENTS: sandbox.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+    postBuildScripts:
+      # The tweak tables stay in ../lib so the CLI and the app can never disagree.
+      - name: Copy tweak tables
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+          cp "${SRCROOT}/../lib/tweaks.conf" \
+             "${SRCROOT}/../lib/defaults.conf" \
+             "${SRCROOT}/../lib/ranges.conf" \
+             "${SRCROOT}/../lib/notes.conf" \
+             "${DEST}/"
+          cp "${SRCROOT}/../lib/i18n/ui.tsv" "${DEST}/"
+
+schemes:
+  macfeel:
+    build:
+      targets:
+        macfeel: all
+    run:
+      config: Debug
+    archive:
+      config: Release
