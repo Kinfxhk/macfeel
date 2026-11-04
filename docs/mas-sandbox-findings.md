@@ -52,6 +52,21 @@ like it works and change nothing.
   the exception lists and fails for the rest — but it is pointless inside the sandbox;
   the CFPreferences path is the one to ship.
 
+## Verified with the shipping binary
+
+`macfeel --write-test` writes a throwaway key to `com.apple.dock`, reads it back through the
+backend and removes it. Run against the **sandbox-signed** `macfeel.app`:
+
+```
+PASS  com.apple.dock write   read=1        # backend's own read
+$ defaults read com.apple.dock macfeelWriteProbe
+1                                          # read from an unsandboxed shell — it really landed
+```
+
+So the sandbox build (`CFBackend`, pure CFPreferences) does write the real preference domain,
+not just its container — provided the entitlement list above is present. Run the same command
+without the exception entitlement and the key never appears outside the container.
+
 ## Consequence for the product
 
 One SwiftUI shell, two backends (`app/Sources/Backend.swift`):

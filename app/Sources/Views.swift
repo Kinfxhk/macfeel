@@ -2,16 +2,39 @@
 
 import SwiftUI
 
+/// Theme preference. A named suite, not `UserDefaults.standard`: the standard
+/// domain moves when the bundle id or the sandbox container changes between the
+/// Developer ID build and the App Store build, which made the saved theme look
+/// like it reset itself.
+enum AppSettings {
+    static let suite = "com.kinfxhk.macfeel.settings"
+
+    static var store: UserDefaults { UserDefaults(suiteName: suite) ?? .standard }
+
+    static var theme: ThemeMode {
+        get { ThemeMode(rawValue: store.string(forKey: "theme") ?? "auto") ?? .auto }
+        set { store.set(newValue.rawValue, forKey: "theme") }
+    }
+}
+
 struct RootView: View {
     @ObservedObject var engine: Engine
 
-    @State private var themeMode: ThemeMode = ThemeMode(rawValue: UserDefaults.standard.string(forKey: "theme") ?? "auto") ?? .auto
+    @State private var themeMode: ThemeMode = AppSettings.theme
     @State private var expanded: Set<String> = []
     @State private var presetLevel: String?
     @State private var confirmingRestore = false
-    @AppStorage("theme") private var storedTheme: String = "auto"
+    @State private var hoveredLevel: String?
 
     private var catalog: Catalog { engine.catalog }
+
+    private var colorScheme: ColorScheme? {
+        switch themeMode {
+        case .auto: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,8 +57,15 @@ struct RootView: View {
         }
         .background(Palette.paper)
         .tint(Palette.accent)
+        .preferredColorScheme(colorScheme)
         .frame(minWidth: 760, minHeight: 640)
-        .onAppear { ThemeMode.apply(storedTheme); themeMode = ThemeMode(rawValue: storedTheme) ?? .auto }
+        .onAppear {
+            themeMode = AppSettings.theme
+            // NSApp.appearance paints the titlebar and controls; doing it inside the
+            // first layout pass is what makes it stick (setting it in App.init is
+            // overwritten while the scene is still being built).
+            DispatchQueue.main.async { ThemeMode.apply(AppSettings.theme.rawValue) }
+        }
         .sheet(item: Binding(get: { presetLevel.map { PresetRequest(level: $0) } },
                              set: { presetLevel = $0?.level })) { request in
             ChangeSheet(engine: engine,
@@ -58,14 +88,15 @@ struct RootView: View {
                 Spacer()
                 Picker("", selection: Binding(get: { themeMode }, set: { mode in
                     themeMode = mode
-                    storedTheme = mode.rawValue
+                    AppSettings.theme = mode
                     ThemeMode.apply(mode.rawValue)
                 })) {
                     ForEach(ThemeMode.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .frame(width: 110)
+                .controlSize(.small)
+                .frame(width: 104)
             }
 
             HStack(spacing: 10) {
@@ -80,18 +111,24 @@ struct RootView: View {
                         .frame(width: 96, alignment: .leading)
                         .padding(.vertical, 9)
                         .padding(.horizontal, 14)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Palette.nav))
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Palette.rule, lineWidth: 1))
+                        .background(RoundedRectangle(cornerRadius: 10)
+                            .fill(hoveredLevel == level ? Palette.accent.opacity(0.14) : Palette.nav))
+                        .overlay(RoundedRectangle(cornerRadius: 10)
+                            .stroke(hoveredLevel == level ? Palette.accent.opacity(0.7) : Palette.rule, lineWidth: 1))
                         .foregroundStyle(Palette.ink)
+                        .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)
+                    .onHover { inside in hoveredLevel = inside ? level : (hoveredLevel == level ? nil : hoveredLevel) }
                 }
                 Spacer()
             }
 
-            HStack(spacing: 6) {
-                Text("點一下預覽改動，確認後才寫入").font(.system(size: 10)).foregroundStyle(Palette.muted)
-                Spacer()
+            VStack(alignment: .leading, spacing: 2) {
+                Text("按組合卡先預覽整份改動清單；逐項調整就在該列按「套用」。")
+                    .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                Text("已套用＝目前值等於此列目標 · 值不同＝已被改成其他值 · 未設定＝系統從未設定")
+                    .font(.system(size: 10)).foregroundStyle(Palette.muted.opacity(0.75))
             }
         }
         .padding(.horizontal, 18)
@@ -124,9 +161,13 @@ struct RootView: View {
             }
             Spacer()
             Button("快照") { engine.takeSnapshot(); engine.note("已建立快照") }
-                .buttonStyle(.plain).font(.caption).foregroundStyle(Palette.muted)
+                .buttonStyle(.plain).font(.caption).foregroundStyle(Palette.ink)
+                .padding(.horizontal, 9).padding(.vertical, 3)
+                .overlay(Capsule().stroke(Palette.rule, lineWidth: 1))
             Button("還原") { confirmingRestore = true }
-                .buttonStyle(.plain).font(.caption).foregroundStyle(Palette.accent)
+                .buttonStyle(.plain).font(.caption.weight(.semibold)).foregroundStyle(Palette.accent)
+                .padding(.horizontal, 9).padding(.vertical, 3)
+                .overlay(Capsule().stroke(Palette.accent.opacity(0.55), lineWidth: 1))
                 .confirmationDialog("還原到最早的快照？", isPresented: $confirmingRestore) {
                     Button("還原所有改動", role: .destructive) { engine.restoreEarliest() }
                     Button("取消", role: .cancel) {}
@@ -206,7 +247,7 @@ struct RowView: View {
             if current == nil {
                 Text("未設定").foregroundStyle(Palette.muted)
             } else if engine.matchesTarget(tweak) {
-                Text("符合").foregroundStyle(Palette.ok)
+                Text("已套用").foregroundStyle(Palette.ok)
             } else {
                 Text("值不同").foregroundStyle(Palette.warn)
             }
@@ -249,12 +290,21 @@ struct RowView: View {
                     HStack {
                         Text(TweakValue.trim(range.min)).font(.system(size: 9)).foregroundStyle(Palette.muted)
                         Spacer()
-                        Text("預設 \(tweak.stockValue?.display ?? "—")")
+                        Text(stockLabel(range))
                             .font(.system(size: 9)).foregroundStyle(Palette.muted)
                         Spacer()
                         Text(TweakValue.trim(range.max)).font(.system(size: 9)).foregroundStyle(Palette.muted)
                     }
                 }
+            } else if tweak.type == .int {
+                Stepper(value: Binding(
+                    get: { Int(shown.display) ?? 0 },
+                    set: { pending = .int($0) }), in: 0...100) {
+                    Text(shown.display)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Palette.ink)
+                }
+                .controlSize(.small)
             } else {
                 TextField("", text: Binding(
                     get: { shown.display },
@@ -266,6 +316,14 @@ struct RowView: View {
                 .font(.system(size: 11, design: .monospaced))
             }
         }
+    }
+
+    /// Centre label under a slider: the stock value, unless it sits on an endpoint
+    /// (then the accent tick already says it and the text would read as a duplicate).
+    private func stockLabel(_ range: (min: Double, max: Double, step: Double)) -> String {
+        guard let stock = tweak.stockValue else { return "系統無預設" }
+        if let n = stock.number, abs(n - range.min) < 0.0001 || abs(n - range.max) < 0.0001 { return "" }
+        return "預設 \(stock.display)"
     }
 
     private var detail: some View {

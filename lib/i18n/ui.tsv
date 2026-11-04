@@ -11,7 +11,7 @@ ui.unset	UNSET	未設定	未设置
 ui.revert	還原此項	還原此項	还原此项
 ui.legend	IN SYNC means applied · DRIFT means a different value (apply overwrites it) · UNSET means macOS never set it · “restore this item” deletes the key and returns it to the system default	已套用＝目前值符合 · 值不同＝目前值不同（套用後會被覆蓋） · 未設定＝macOS 從未設定此項 · 「還原此項」會刪除該 key，回復系統預設	IN SYNC 已应用 · DRIFT 值不同（可以覆盖） · UNSET 系统未设过 · 右边「还原此项」＝删除该 key，回到系统预设
 ui.lede	Every row names the defaults key it writes. Applying a row changes only that row; the button above applies the whole preset.	每一列都會標明它所修改的 defaults 鍵值；右側的「套用」只修改該項，上方按鈕則一次套用整個預設組合。	每一列都会标明它所修改的 defaults 键值；右侧的「应用」只修改该项，上方按钮则一次应用整个预设组合。
-ui.footer	macfeel writes user-level preferences only — no Accessibility, no SIP changes. RESTORE returns to the state before macfeel ever ran.	macfeel 只寫入使用者層級設定 — 無需 Accessibility，也不會修改 SIP。RESTORE 會回復至修改前狀態。	macfeel 只写用户层设置 — 不需要 Accessibility、不会改 SIP。RESTORE 会回到未改之前的状态。
+ui.footer	macfeel writes user-level preferences only — no Accessibility, no SIP changes. Undo returns to the state before macfeel ever ran.	macfeel 只寫入使用者層級設定 — 無需 Accessibility，也不會修改 SIP；「還原」會回復至 macfeel 第一次執行前狀態。	macfeel 只写用户层设置 — 不需要 Accessibility、不会改 SIP；「还原」会回到 macfeel 第一次运行前的状态。
 ui.language	Language	語言	语言
 cli.already	already matches profile '{profile}' — nothing to do, no snapshot taken	已與預設組合 '{profile}' 一致 — 無需執行，不會建立快照	已经和 preset '{profile}' 一致 — 没有要做的，不会 snapshot
 cli.dry	dry run — nothing will be written ({count} pending)	試跑 — 不會寫入任何內容（{count} 項待修改）	试跑 — 不会写入任何东西（{count} 项待改）

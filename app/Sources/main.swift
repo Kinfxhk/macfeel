@@ -40,6 +40,36 @@ let exitCode: Int32? = MainActor.assumeIsolated {
         return 0
     }
 
+    if arguments.contains("--env") {
+        print("bundle=\(Bundle.main.bundleIdentifier ?? "nil")")
+        print("standard.theme=\(UserDefaults.standard.string(forKey: "theme") ?? "nil")")
+        print("settings.theme=\(AppSettings.theme.rawValue)")
+        print("sandboxed=\(BackendFactory.isSandboxed) backend=\(BackendFactory.make().name)")
+        return 0
+    }
+
+    if arguments.contains("--write-test") {
+        // Proves the shipping build can really write another app's domain: write a
+        // throwaway key to com.apple.dock, read it back through the backend, delete it.
+        let backend = BackendFactory.make()
+        let probe = Tweak(id: "write.probe", profiles: [], domain: "com.apple.dock",
+                          key: "macfeelWriteProbe", type: .string, value: .string("1"),
+                          needs: "-", label: "probe")
+        backend.delete(probe)
+        try? backend.write(probe, .string("1"))
+        let landed = backend.exportDomain("com.apple.dock")["macfeelWriteProbe"].flatMap(TweakValue.from)
+        // MACFEEL_KEEP_PROBE=1 leaves the key behind so an unsandboxed shell can
+        // read the real plist — the only way to prove a sandboxed write escaped
+        // its container.
+        if ProcessInfo.processInfo.environment["MACFEEL_KEEP_PROBE"] != "1" {
+            backend.delete(probe)
+        }
+        let clean = backend.exportDomain("com.apple.dock")["macfeelWriteProbe"] == nil
+        print("\(landed?.matches(.string("1")) == true ? "PASS" : "FAIL")\tcom.apple.dock write\tread=\(landed?.display ?? "nil")")
+        print("\(clean ? "PASS" : "FAIL")\tcom.apple.dock cleanup")
+        return (landed != nil && clean) ? 0 : 1
+    }
+
     if let i = arguments.firstIndex(of: "--plan"), i + 1 < arguments.count {
         let level = arguments[i + 1]
         let engine = Engine(catalog: catalog, backend: BackendFactory.make())
